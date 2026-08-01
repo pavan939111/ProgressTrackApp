@@ -2,18 +2,17 @@
 
 import React, { useEffect, useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { X, Settings, Bell, Sun, Moon, Monitor, Upload, Plus, Trash2 } from 'lucide-react';
+import { Settings, Bell, Sun, Moon, Monitor, Upload, Plus, Trash2, User } from 'lucide-react';
 import { CalendarIntegrationsPanel } from '@/features/integrations/CalendarIntegrationsPanel';
 import { applyDocumentTheme } from '@/components/ThemeSync';
+import { useAuth } from '@/context/AuthContext';
 
 function apiBase() {
   return (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 }
 
-export const SettingsModal = () => {
+export function ProfilePage() {
   const {
-    isSettingsOpen,
-    closeSettings,
     settings,
     saveSettings,
     user,
@@ -22,6 +21,7 @@ export const SettingsModal = () => {
     addCustomSession,
     removeCustomSession,
   } = useApp();
+  const { logout } = useAuth();
   const [section, setSection] = useState<'profile' | 'appearance' | 'reminders' | 'sessions' | 'calendar'>(
     'profile'
   );
@@ -35,13 +35,13 @@ export const SettingsModal = () => {
   const [weekly, setWeekly] = useState(settings.weeklyReminder);
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [customName, setCustomName] = useState('');
   const [customStart, setCustomStart] = useState('09:00');
   const [customEnd, setCustomEnd] = useState('10:00');
   const [customReminder, setCustomReminder] = useState('09:00');
 
   useEffect(() => {
-    if (!isSettingsOpen) return;
     setFullName(user.fullName);
     setMorning(settings.morningReminder);
     setLunch(settings.beforeLunchReminder);
@@ -50,9 +50,7 @@ export const SettingsModal = () => {
     setNight(settings.nightReminder);
     setPlanning(settings.planningReminder);
     setWeekly(settings.weeklyReminder);
-  }, [isSettingsOpen, user.fullName, settings]);
-
-  if (!isSettingsOpen) return null;
+  }, [user.fullName, settings]);
 
   const save = () => {
     if (section === 'profile') {
@@ -68,7 +66,8 @@ export const SettingsModal = () => {
         weeklyReminder: weekly,
       });
     }
-    closeSettings();
+    setSaveMsg('Saved');
+    window.setTimeout(() => setSaveMsg(null), 2000);
   };
 
   const setTheme = (theme: 'light' | 'dark' | 'system') => {
@@ -108,42 +107,31 @@ export const SettingsModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/40 backdrop-blur-md">
-      <div className="glass-modal w-full max-w-lg rounded-3xl p-6 md:p-8 border border-border shadow-2xl relative text-foreground space-y-6 max-h-[90vh] overflow-y-auto">
-        <button
-          onClick={closeSettings}
-          className="absolute top-6 right-6 p-2 text-muted-foreground hover:text-foreground rounded-full bg-muted"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <div className="space-y-6 pb-4 font-body">
+      <header className="space-y-1">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Account</p>
+        <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">Profile</h1>
+        <p className="text-sm text-muted-foreground">Manage your account, reminders, and preferences.</p>
+      </header>
 
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 border border-primary/25 rounded-2xl">
-            <Settings className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-primary">Preferences</span>
-            <h2 className="font-display text-2xl font-extrabold text-foreground">Settings</h2>
-          </div>
-        </div>
+      <div className="flex flex-wrap gap-2">
+        {(['profile', 'appearance', 'reminders', 'sessions', 'calendar'] as const).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setSection(s)}
+            className={`px-3 py-2 min-h-11 rounded-lg text-xs font-bold border capitalize ${
+              section === s
+                ? 'bg-primary border-primary text-primary-foreground'
+                : 'bg-muted border-border text-muted-foreground'
+            }`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
 
-        <div className="flex flex-wrap gap-2">
-          {(['profile', 'appearance', 'reminders', 'sessions', 'calendar'] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setSection(s)}
-              className={`px-3 py-2 min-h-11 rounded-lg text-xs font-bold border capitalize ${
-                section === s
-                  ? 'bg-primary border-primary text-primary-foreground'
-                  : 'bg-muted border-border text-muted-foreground'
-              }`}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-
+      <section className="bg-card border border-border rounded-2xl p-5 md:p-6 space-y-5 shadow-sm">
         {section === 'profile' && (
           <div className="space-y-4">
             <div className="flex items-center gap-4">
@@ -155,7 +143,7 @@ export const SettingsModal = () => {
                   user.fullName.charAt(0).toUpperCase()
                 )}
               </div>
-              <label className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border text-xs font-bold cursor-pointer">
+              <label className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border text-xs font-bold cursor-pointer min-h-11">
                 <Upload className="w-4 h-4" />
                 {uploading ? 'Uploading…' : 'Upload photo'}
                 <input
@@ -172,7 +160,7 @@ export const SettingsModal = () => {
               <input
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-muted border border-border rounded-xl p-3 text-sm text-foreground"
+                className="w-full bg-muted border border-border rounded-xl p-3 text-sm text-foreground min-h-12"
               />
             </label>
             <p className="text-xs text-muted-foreground">Email: {user.email}</p>
@@ -186,6 +174,14 @@ export const SettingsModal = () => {
             >
               <Bell className="w-4 h-4" />
               {user.notificationPermission ? 'Notifications + FCM enabled' : 'Enable reminders + FCM push'}
+            </button>
+            <button
+              type="button"
+              onClick={() => void logout()}
+              className="flex items-center gap-2 px-4 py-2.5 min-h-11 rounded-xl border border-danger/30 text-xs font-bold text-danger"
+            >
+              <User className="w-4 h-4" />
+              Log out
             </button>
           </div>
         )}
@@ -207,7 +203,7 @@ export const SettingsModal = () => {
                   onClick={() => setTheme(id)}
                   className={`flex flex-col items-start gap-2 p-4 rounded-2xl border text-left min-h-11 transition-all ${
                     settings.theme === id
-                      ? 'border-primary bg-primary/10 shadow-glow'
+                      ? 'border-primary bg-primary/10'
                       : 'border-border bg-card hover:border-primary/40'
                   }`}
                 >
@@ -240,7 +236,7 @@ export const SettingsModal = () => {
                   type="time"
                   value={value}
                   onChange={(e) => setter(e.target.value)}
-                  className="bg-card border border-border rounded-xl px-3 py-1.5 text-xs text-foreground"
+                  className="bg-card border border-border rounded-xl px-3 py-1.5 text-xs text-foreground min-h-11"
                 />
               </div>
             ))}
@@ -249,11 +245,11 @@ export const SettingsModal = () => {
               <input
                 value={weekly}
                 onChange={(e) => setWeekly(e.target.value)}
-                className="w-full bg-muted border border-border rounded-xl p-3 text-sm"
+                className="w-full bg-muted border border-border rounded-xl p-3 text-sm min-h-12"
                 placeholder="Sunday 20:00"
               />
             </label>
-            <label className="flex items-center gap-2 text-sm text-foreground">
+            <label className="flex items-center gap-2 text-sm text-foreground min-h-11">
               <input
                 type="checkbox"
                 checked={settings.notificationsEnabled}
@@ -289,25 +285,25 @@ export const SettingsModal = () => {
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
                 placeholder="Session name"
-                className="col-span-2 bg-muted border border-border rounded-xl p-3 text-sm"
+                className="col-span-2 bg-muted border border-border rounded-xl p-3 text-sm min-h-12"
               />
               <input
                 type="time"
                 value={customStart}
                 onChange={(e) => setCustomStart(e.target.value)}
-                className="bg-muted border border-border rounded-xl p-2 text-xs"
+                className="bg-muted border border-border rounded-xl p-2 text-xs min-h-11"
               />
               <input
                 type="time"
                 value={customEnd}
                 onChange={(e) => setCustomEnd(e.target.value)}
-                className="bg-muted border border-border rounded-xl p-2 text-xs"
+                className="bg-muted border border-border rounded-xl p-2 text-xs min-h-11"
               />
               <input
                 type="time"
                 value={customReminder}
                 onChange={(e) => setCustomReminder(e.target.value)}
-                className="col-span-2 bg-muted border border-border rounded-xl p-2 text-xs"
+                className="col-span-2 bg-muted border border-border rounded-xl p-2 text-xs min-h-11"
               />
             </div>
             <button
@@ -322,7 +318,7 @@ export const SettingsModal = () => {
                 });
                 setCustomName('');
               }}
-              className="flex items-center gap-2 text-xs font-bold text-primary"
+              className="flex items-center gap-2 text-xs font-bold text-primary min-h-11"
             >
               <Plus className="w-4 h-4" /> Add custom session
             </button>
@@ -331,12 +327,16 @@ export const SettingsModal = () => {
 
         {section === 'calendar' && <CalendarIntegrationsPanel />}
 
-        <div className="flex justify-end pt-4 border-t border-border">
-          <button onClick={save} className="btn-primary px-6 py-2.5 text-xs">
-            Save
-          </button>
-        </div>
-      </div>
+        {(section === 'profile' || section === 'reminders') && (
+          <div className="flex items-center justify-between gap-3 pt-4 border-t border-border">
+            {saveMsg ? <p className="text-xs text-secondary font-semibold">{saveMsg}</p> : <span />}
+            <button type="button" onClick={save} className="btn-primary px-6 py-2.5 text-xs min-h-11">
+              <Settings className="w-4 h-4" />
+              Save
+            </button>
+          </div>
+        )}
+      </section>
     </div>
   );
-};
+}

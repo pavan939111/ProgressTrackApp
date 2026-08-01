@@ -28,10 +28,12 @@ import { SyncStatusBar } from '@/components/SyncStatusBar';
 export type AppTab =
   | 'dashboard'
   | 'goals'
+  | 'planner'
   | 'reports'
   | 'calendar'
   | 'teams'
-  | 'analytics';
+  | 'analytics'
+  | 'settings';
 
 type Props = {
   activeTab: AppTab;
@@ -41,7 +43,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-const DESKTOP_NAV: { id: AppTab | 'planner' | 'settings'; label: string; icon: React.ReactNode }[] = [
+const DESKTOP_NAV: { id: AppTab; label: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
   { id: 'goals', label: 'Weekly Goals', icon: <Award className="w-5 h-5" /> },
   { id: 'planner', label: 'Planner', icon: <ClipboardList className="w-5 h-5" /> },
@@ -49,10 +51,10 @@ const DESKTOP_NAV: { id: AppTab | 'planner' | 'settings'; label: string; icon: R
   { id: 'reports', label: 'Reports', icon: <FileText className="w-5 h-5" /> },
   { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-5 h-5" /> },
   { id: 'teams', label: 'Teams', icon: <Users className="w-5 h-5" /> },
-  { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
+  { id: 'settings', label: 'Profile', icon: <Settings className="w-5 h-5" /> },
 ];
 
-const MOBILE_NAV: { id: AppTab | 'planner' | 'settings'; label: string; icon: React.ReactNode }[] = [
+const MOBILE_NAV: { id: AppTab; label: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', label: 'Home', icon: <Home className="w-6 h-6" /> },
   { id: 'planner', label: 'Planner', icon: <ClipboardList className="w-6 h-6" /> },
   { id: 'calendar', label: 'Calendar', icon: <CalendarDays className="w-6 h-6" /> },
@@ -84,20 +86,11 @@ function ThemeCycleButton({ className = '' }: { className?: string }) {
 }
 
 export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: Props) {
-  const { user, openSettings, openPlanner } = useApp();
+  const { user } = useApp();
   const mainRef = React.useRef<HTMLElement | null>(null);
 
-  const handleNav = (id: AppTab | 'planner' | 'settings') => {
-    if (id === 'planner') {
-      openPlanner();
-      return;
-    }
-    if (id === 'settings') {
-      openSettings();
-      return;
-    }
+  const handleNav = (id: AppTab) => {
     setActiveTab(id);
-    // Keep sticky mobile header from covering the first controls after tab switch.
     requestAnimationFrame(() => {
       mainRef.current?.scrollTo({ top: 0 });
       window.scrollTo(0, 0);
@@ -106,7 +99,6 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
 
   return (
     <div className="min-h-dvh bg-background text-foreground font-body flex">
-      {/* Desktop sidebar — Stitch */}
       <aside className="hidden lg:flex fixed left-0 top-0 h-dvh w-60 bg-card border-r border-border flex-col py-6 px-4 z-30">
         <div className="mb-8 px-2 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-display font-bold text-xl">
@@ -122,7 +114,7 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
 
         <button
           type="button"
-          onClick={openPlanner}
+          onClick={() => handleNav('planner')}
           className="mb-6 w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-2 min-h-11"
         >
           <Plus className="w-4 h-4" />
@@ -153,7 +145,7 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
         <div className="mt-auto pt-4 border-t border-border space-y-2">
           <button
             type="button"
-            onClick={openSettings}
+            onClick={() => handleNav('settings')}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors text-left"
           >
             <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center font-display font-bold text-sm overflow-hidden">
@@ -166,7 +158,9 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">{user.fullName}</p>
-              <p className="text-[10px] text-muted-foreground truncate">Lvl {user.level} · {user.totalXP} XP</p>
+              <p className="text-[10px] text-muted-foreground truncate">
+                Lvl {user.level} · {user.totalXP} XP
+              </p>
             </div>
           </button>
           <button
@@ -180,9 +174,7 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
         </div>
       </aside>
 
-      {/* Main column */}
       <div className="flex-1 flex flex-col lg:ml-60 min-h-dvh min-w-0">
-        {/* Mobile top bar */}
         <header className="lg:hidden sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex justify-between items-center px-4 py-3 max-w-lg mx-auto w-full">
             <div className="flex items-center gap-2 text-primary">
@@ -199,7 +191,6 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
           </div>
         </header>
 
-        {/* Desktop top bar */}
         <header className="hidden lg:flex justify-between items-center w-full px-8 py-4 shrink-0">
           <div className="relative w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -218,8 +209,8 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
             <button
               type="button"
               className="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-card border border-transparent hover:border-border transition-all"
-              aria-label="Open settings"
-              onClick={openSettings}
+              aria-label="Open profile"
+              onClick={() => handleNav('settings')}
             >
               <Bell className="w-5 h-5" />
             </button>
@@ -235,7 +226,6 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
         </main>
       </div>
 
-      {/* Mobile bottom nav — Stitch */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-card border-t border-border rounded-t-2xl shadow-[0_-4px_16px_-4px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom)]">
         <div className="flex justify-around items-center px-1 pt-2 pb-2 max-w-lg mx-auto">
           {MOBILE_NAV.map((item) => {

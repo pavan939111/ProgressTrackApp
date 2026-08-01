@@ -34,8 +34,6 @@ interface AppContextType {
   achievements: Achievement[];
   activeSession: Session | null;
   activeCheckInSession: Session | null;
-  isPlannerOpen: boolean;
-  isSettingsOpen: boolean;
   xpGain: { amount: number; reason: string } | null;
   calendarDays: { date: string; completion: number; completed: boolean; goal: string }[];
   nextReminder: { label: string; time: string; isTomorrow: boolean } | null;
@@ -43,9 +41,7 @@ interface AppContextType {
   openCheckIn: (session: Session) => void;
   closeCheckIn: () => void;
   openPlanner: () => void;
-  closePlanner: () => void;
   openSettings: () => void;
-  closeSettings: () => void;
   triggerConfetti: () => void;
   saveSettings: (updates: Partial<UserSettings>) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
@@ -126,8 +122,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     { date: string; completion: number; completed: boolean; goal: string }[]
   >([]);
   const [activeCheckInSession, setActiveCheckInSession] = useState<Session | null>(null);
-  const [isPlannerOpen, setIsPlannerOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [xpGain, setXpGain] = useState<{ amount: number; reason: string } | null>(null);
 
   const refresh = useCallback(() => {
@@ -170,7 +164,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           const ses = sessions.find((s) => s.name === payload.sessionHint);
           if (ses) setActiveCheckInSession(ses);
         } else if (payload.action === 'planner') {
-          setIsPlannerOpen(true);
+          window.dispatchEvent(new CustomEvent('pta-navigate', { detail: { tab: 'planner' } }));
         }
       },
       { lastActiveDate: user.lastActiveDate }
@@ -189,7 +183,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           sessions[0];
         if (ses) setActiveCheckInSession(ses);
       } else if (action === 'planner') {
-        setIsPlannerOpen(true);
+        window.dispatchEvent(new CustomEvent('pta-navigate', { detail: { tab: 'planner' } }));
       } else if (action === 'weekly') {
         ptaStore.generateWeeklyReport(uid);
         refresh();
@@ -247,18 +241,18 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     achievements,
     activeSession,
     activeCheckInSession,
-    isPlannerOpen,
-    isSettingsOpen,
     xpGain,
     calendarDays,
     nextReminder: getNextReminder(settings),
     refresh,
     openCheckIn: (s) => setActiveCheckInSession(s),
     closeCheckIn: () => setActiveCheckInSession(null),
-    openPlanner: () => setIsPlannerOpen(true),
-    closePlanner: () => setIsPlannerOpen(false),
-    openSettings: () => setIsSettingsOpen(true),
-    closeSettings: () => setIsSettingsOpen(false),
+    openPlanner: () => {
+      window.dispatchEvent(new CustomEvent('pta-navigate', { detail: { tab: 'planner' } }));
+    },
+    openSettings: () => {
+      window.dispatchEvent(new CustomEvent('pta-navigate', { detail: { tab: 'settings' } }));
+    },
     triggerConfetti,
     saveSettings: (updates) => {
       const next = ptaStore.saveSettings({ ...settings, ...updates, uid });
@@ -294,7 +288,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(result.profile);
       if (result.xpEarned) showXp(result.xpEarned, input.asDraft ? 'Draft saved' : 'Night planning saved');
       if (!input.asDraft) triggerConfetti();
-      setIsPlannerOpen(false);
       refresh();
     },
     deleteTomorrowPlan: () => {
