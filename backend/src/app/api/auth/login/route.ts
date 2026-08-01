@@ -5,7 +5,7 @@ import {
   signInWithPassword,
   signUp,
 } from '../../../../../auth/firebaseAuthRest';
-import { toProfile } from '../../../../../auth/sessionAuth';
+import { toProfile } from '../../../../../auth/toProfile';
 
 export async function POST(req: NextRequest) {
   try {

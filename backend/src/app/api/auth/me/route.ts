@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { apiSuccess, apiError } from '../../../../../shared/errors/apiResponse';
-import { requireUser, toProfile } from '../../../../../auth/sessionAuth';
+import { requireUser } from '../../../../../auth/sessionAuth';
+import { toProfile } from '../../../../../auth/toProfile';
 import { refreshIdToken, firebaseAuthConfigured } from '../../../../../auth/firebaseAuthRest';
 
 export async function GET(req: NextRequest) {
