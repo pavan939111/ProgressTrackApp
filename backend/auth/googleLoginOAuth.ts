@@ -22,7 +22,8 @@ export function googleLoginConfigured() {
 }
 
 export function googleLoginRedirectUri() {
-  return `${apiUrl()}/api/auth/google/callback`;
+  // Reuse Calendar OAuth redirect URI so Google Cloud Console needs only one backend callback.
+  return `${apiUrl()}/api/oauth/google/callback`;
 }
 
 export function googleLoginAuthUrl(returnPath = '/') {

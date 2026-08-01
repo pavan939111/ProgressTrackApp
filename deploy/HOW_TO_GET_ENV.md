@@ -44,10 +44,9 @@ You may keep `NEXT_PUBLIC_FIREBASE_*` **on the backend only** as aliases. Do **n
 ## Google Calendar OAuth (backend)
 
 1. Google Cloud Console → OAuth Web client
-2. Authorized redirect URIs (both required):
-   - `https://backend-six-roan-24.vercel.app/api/oauth/google/callback` (Calendar)
-   - `https://backend-six-roan-24.vercel.app/api/auth/google/callback` (Login)
-   - Local: `http://localhost:3001/api/oauth/google/callback` and `http://localhost:3001/api/auth/google/callback`
+2. Authorized redirect URI (login + calendar share this one):
+   - `https://backend-six-roan-24.vercel.app/api/oauth/google/callback`
+   - Local: `http://localhost:3001/api/oauth/google/callback`
 3. Authorized JavaScript origins (optional): `https://progress-track-app.vercel.app`
 4. `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
 
