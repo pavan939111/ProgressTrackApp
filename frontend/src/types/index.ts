@@ -4,6 +4,14 @@ export type SessionStatus = 'Pending' | 'Active' | 'Completed' | 'Missed';
 export type GoalStatus = 'Active' | 'Completed' | 'Archived';
 export type SessionName = 'Morning' | 'Before Lunch' | 'Afternoon' | 'Evening' | 'Night';
 
+export interface CustomSessionDef {
+  name: string;
+  order: number;
+  start: string;
+  end: string;
+  reminder: string;
+}
+
 export interface UserProfile {
   uid: string;
   email: string;
@@ -35,6 +43,8 @@ export interface UserSettings {
   theme: 'dark' | 'light' | 'system';
   workDays: number[];
   syncEnabled: boolean;
+  /** Extra sessions beyond the 5 defaults (FR-05). */
+  customSessions?: CustomSessionDef[];
   createdAt: string;
   updatedAt: string;
 }
@@ -68,7 +78,7 @@ export interface DailyPlan {
   completedTasks: number;
   pendingTasks: number;
   weeklyGoalIds?: string[];
-  status: 'In Progress' | 'Completed';
+  status: 'Draft' | 'In Progress' | 'Completed';
   createdAt: string;
   updatedAt: string;
 }
@@ -77,7 +87,7 @@ export interface Session {
   sessionId: string;
   uid: string;
   dailyPlanId: string;
-  name: SessionName;
+  name: SessionName | string;
   order: number;
   startTime: string;
   endTime: string;
@@ -165,7 +175,7 @@ export interface Achievement {
   iconName?: string;
 }
 
-export type CalendarProvider = 'google' | 'outlook' | 'apple' | 'ics';
+export type CalendarProvider = 'google' | 'apple' | 'ics';
 
 export interface CalendarConnection {
   provider: CalendarProvider;

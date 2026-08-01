@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Mic, MicOff } from 'lucide-react';
@@ -28,7 +28,7 @@ export function VoiceInputButton({
 
   if (!supported) {
     return (
-      <span className="text-[10px] text-slate-500" title="Voice not supported in this browser">
+      <span className="text-[10px] text-muted-foreground" title="Voice not supported in this browser">
         Voice N/A
       </span>
     );
@@ -43,11 +43,11 @@ export function VoiceInputButton({
         className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${
           listening
             ? 'bg-rose-600/30 border-rose-500/50 text-rose-300 animate-pulse'
-            : 'bg-slate-900 border-white/10 text-cyan-400 hover:border-cyan-500/40'
+            : 'bg-muted border-border text-cyan-400 hover:border-cyan-500/40'
         }`}
       >
         {listening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-        {label || (listening ? 'Listening…' : 'Voice')}
+        {label || (listening ? 'Listeningâ€¦' : 'Voice')}
       </button>
       {error && <span className="text-[10px] text-rose-400 max-w-[140px] truncate">{error}</span>}
     </div>

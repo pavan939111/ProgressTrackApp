@@ -1,208 +1,267 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { useApp } from '@/context/AppContext';
-import { CheckCircle2, Circle, Flame, Award, Clock, ArrowRight, Zap, Target, Plus } from 'lucide-react';
+import { Check, ArrowRight, Award } from 'lucide-react';
 
-export const DashboardView = () => {
-  const { user, todayPlan, sessions, tasks, weeklyGoals, openCheckIn, openPlanner, completeTask } = useApp();
+function ProgressRing({ percent, size = 176 }: { percent: number; size?: number }) {
+  const stroke = size >= 200 ? 6 : 8;
+  const r = (size / 2) - stroke * 1.5;
+  const c = 2 * Math.PI * r;
+  const offset = c * (1 - Math.min(100, Math.max(0, percent)) / 100);
 
   return (
-    <div className="space-y-8 pb-12">
-      {/* Top Header Card: User Stats & Core Goal */}
-      <div className="relative overflow-hidden glass-panel rounded-3xl p-6 md:p-8 border border-white/10 shadow-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-cyan-400 bg-cyan-950/60 border border-cyan-800/40 rounded-full">
-                Level {user.level} Execution Master
-              </span>
-              <span className="flex items-center gap-1 text-xs font-semibold text-amber-400 bg-amber-950/60 border border-amber-800/40 rounded-full px-3 py-1">
-                <Flame className="w-3.5 h-3.5 fill-amber-400" />
-                {user.streak}-Day Streak
-              </span>
-            </div>
-            <h1 className="text-2xl md:text-4xl font-extrabold text-white mt-3 tracking-tight">
-              Welcome Back, {user.fullName.split(' ')[0]} 👋
-            </h1>
-            <p className="text-sm md:text-base text-slate-300 mt-2 max-w-xl">
-              Today&apos;s Focus: <span className="font-semibold text-cyan-300">&ldquo;{todayPlan.goal}&rdquo;</span>
-            </p>
-          </div>
-
-          <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-            <div className="text-right">
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total XP</p>
-              <div className="flex items-center gap-1.5 justify-end">
-                <Zap className="w-5 h-5 text-amber-400 fill-amber-400" />
-                <span className="text-2xl font-black text-amber-300">{user.totalXP}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={openPlanner}
-              className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 text-white px-5 py-3 rounded-2xl font-bold text-sm shadow-lg hover:shadow-cyan-500/25 transition-all transform hover:-translate-y-0.5"
-            >
-              <Plus className="w-4 h-4" />
-              Plan Tomorrow
-            </button>
-          </div>
-        </div>
-
-        {/* Daily Progress Bar */}
-        <div className="mt-8 pt-6 border-t border-white/10">
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span className="font-semibold text-slate-300">Daily Execution Completion</span>
-            <span className="font-bold text-cyan-400">{todayPlan.completionPercentage}%</span>
-          </div>
-          <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-white/5">
-            <div
-              className="h-full bg-gradient-to-r from-cyan-500 via-violet-500 to-emerald-400 rounded-full transition-all duration-500 shadow-glow"
-              style={{ width: `${todayPlan.completionPercentage}%` }}
-            />
-          </div>
-        </div>
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg className="w-full h-full -rotate-90" viewBox={`0 0 ${size} ${size}`}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="transparent"
+          stroke="hsl(var(--muted))"
+          strokeWidth={stroke}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="transparent"
+          stroke="hsl(var(--primary))"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={offset}
+          className="transition-[stroke-dashoffset] duration-700 ease-out"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-display text-3xl md:text-5xl font-bold text-foreground tracking-tighter tabular-nums">
+          {percent}%
+        </span>
+        <span className="text-[10px] md:text-xs text-muted-foreground font-medium tracking-wide uppercase">
+          Complete
+        </span>
       </div>
+    </div>
+  );
+}
 
-      {/* 5-Session Execution Timeline */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <Clock className="w-5 h-5 text-cyan-400" />
-          5-Session Execution Timeline
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+function priorityBadge(priority: string) {
+  if (priority === 'High') return { label: 'P1', className: 'bg-danger/10 text-danger' };
+  if (priority === 'Medium') return { label: 'P2', className: 'bg-accent/10 text-accent' };
+  return { label: 'P3', className: 'bg-primary/10 text-primary' };
+}
+
+export const DashboardView = () => {
+  const {
+    todayPlan,
+    sessions,
+    tasks,
+    weeklyGoals,
+    openCheckIn,
+    completeTask,
+    startTask,
+    activeSession,
+    nextReminder,
+  } = useApp();
+
+  const pct = todayPlan.completionPercentage;
+  const focusTasks = tasks.slice(0, 8);
+
+  return (
+    <div className="space-y-8 pb-4 font-body">
+      {/* Hero — Stitch mobile card / desktop centered */}
+      <section className="bg-card rounded-2xl p-6 md:p-8 border border-border shadow-sm flex flex-col items-center text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-primary/5 -z-0 rounded-2xl pointer-events-none" />
+        <div className="relative z-10 w-full flex flex-col items-center">
+          <p className="text-muted-foreground text-sm font-medium mb-1 tracking-wide uppercase">
+            Today&apos;s goal
+          </p>
+          <h2 className="font-display text-2xl md:text-4xl font-bold mb-2 text-foreground tracking-tight">
+            Execution Phase
+          </h2>
+          <p className="text-sm text-muted-foreground max-w-md mb-2 line-clamp-2">
+            {todayPlan.goal}
+          </p>
+          {nextReminder && (
+            <p className="text-xs text-primary font-semibold mb-6">
+              Next reminder: {nextReminder.label} at {nextReminder.time}
+              {nextReminder.isTomorrow ? ' (tomorrow)' : ''}
+            </p>
+          )}
+          {!nextReminder && <div className="mb-6" />}
+
+          <div className="mb-8 md:mb-10">
+            <div className="md:hidden">
+              <ProgressRing percent={pct} size={160} />
+            </div>
+            <div className="hidden md:block">
+              <ProgressRing percent={pct} size={240} />
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => activeSession && openCheckIn(activeSession)}
+            className="w-full max-w-md pulse-btn bg-primary text-primary-foreground font-display font-bold py-4 px-6 rounded-xl hover:brightness-110 transition-all flex justify-center items-center gap-2 active:scale-[0.98] min-h-12 shadow-lg shadow-primary/20"
+          >
+            Continue {activeSession?.name || 'Morning'} Session
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </section>
+
+      {/* Session track strip */}
+      <section>
+        <h3 className="font-display text-sm font-bold text-foreground mb-4 uppercase tracking-wider">
+          Session track
+        </h3>
+        <div className="flex items-center justify-between relative px-1">
+          <div className="absolute left-4 right-4 top-4 h-0.5 bg-border -z-0" />
+          {(() => {
+            const completedCount = sessions.filter((s) => s.status === 'Completed').length;
+            const activeIdx = sessions.findIndex((s) => s.status === 'Active');
+            const fillTo = activeIdx >= 0 ? activeIdx : completedCount - 1;
+            const fillPct =
+              sessions.length <= 1 ? 0 : Math.max(0, Math.min(100, (fillTo / (sessions.length - 1)) * 100));
+            return (
+              <div
+                className="absolute left-4 top-4 h-0.5 bg-primary -z-0 transition-all duration-500"
+                style={{ width: `calc((100% - 2rem) * ${fillPct / 100})` }}
+              />
+            );
+          })()}
           {sessions.map((session) => {
             const isCompleted = session.status === 'Completed';
             const isActive = session.status === 'Active';
             return (
-              <div
+              <button
                 key={session.sessionId}
+                type="button"
                 onClick={() => openCheckIn(session)}
-                className={`cursor-pointer rounded-2xl p-4 border transition-all ${
-                  isActive
-                    ? 'glass-panel border-cyan-500/50 bg-cyan-950/30 shadow-lg shadow-cyan-500/10 transform hover:-translate-y-1'
-                    : isCompleted
-                    ? 'glass-card border-emerald-500/30 bg-emerald-950/10'
-                    : 'glass-card border-white/5 bg-slate-900/40 hover:border-white/20'
-                }`}
+                className="relative z-10 flex flex-col items-center gap-2 min-w-0 flex-1"
+                title={session.name}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-slate-400">{session.startTime}</span>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                    isCompleted
+                      ? 'bg-secondary text-secondary-foreground shadow-sm'
+                      : isActive
+                        ? 'bg-card border-2 border-primary text-primary shadow-md ring-4 ring-primary/15'
+                        : 'bg-muted border border-border text-muted-foreground'
+                  }`}
+                >
                   {isCompleted ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <Check className="w-4 h-4" strokeWidth={3} />
                   ) : isActive ? (
-                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
-                  ) : (
-                    <Circle className="w-4 h-4 text-slate-600" />
-                  )}
+                    <span className="w-2.5 h-2.5 rounded-full bg-primary" />
+                  ) : null}
                 </div>
-                <h3 className="font-bold text-white text-base">{session.name}</h3>
-                <p className="text-xs text-slate-400 mt-1">{session.completedTaskCount} / {session.taskCount} Tasks Completed</p>
-              </div>
+                <span className="text-[10px] font-medium text-muted-foreground truncate max-w-full px-0.5 hidden sm:block">
+                  {session.name.split(' ')[0]}
+                </span>
+              </button>
             );
           })}
         </div>
-      </div>
+      </section>
 
-      {/* Active Tasks & Weekly Goals Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Active Tasks Column */}
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Target className="w-5 h-5 text-amber-400" />
-            Today&apos;s Planned Session Tasks
-          </h2>
-
-          <div className="space-y-3">
-            {tasks.map((task) => {
-              const isDone = task.status === 'Completed';
-              return (
-                <div
-                  key={task.taskId}
-                  className={`glass-card rounded-2xl p-5 border transition-all flex items-center justify-between gap-4 ${
-                    isDone
-                      ? 'border-emerald-500/30 bg-emerald-950/10 opacity-75'
-                      : 'border-white/10 bg-slate-900/60 hover:border-white/20'
-                  }`}
-                >
-                  <div className="flex items-start gap-4">
-                    <button
-                      onClick={() => !isDone && completeTask(task.taskId)}
-                      className="mt-1 transition-transform hover:scale-110"
-                    >
-                      {isDone ? (
-                        <CheckCircle2 className="w-6 h-6 text-emerald-400 fill-emerald-950" />
-                      ) : (
-                        <Circle className="w-6 h-6 text-slate-500 hover:text-cyan-400" />
-                      )}
-                    </button>
-
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`text-xs font-semibold px-2.5 py-0.5 rounded-md ${
-                            task.priority === 'High'
-                              ? 'bg-rose-950/60 text-rose-400 border border-rose-800/40'
-                              : 'bg-amber-950/60 text-amber-400 border border-amber-800/40'
-                          }`}
-                        >
-                          {task.priority} Priority
-                        </span>
-                        <span className="text-xs font-medium text-slate-400">• {task.session} Session</span>
-                      </div>
-                      <h4 className={`text-base font-bold text-white mt-1 ${isDone ? 'line-through text-slate-400' : ''}`}>
-                        {task.title}
-                      </h4>
-                      {task.description && (
-                        <p className="text-xs text-slate-400 mt-1">{task.description}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {!isDone && (
-                    <button
-                      onClick={() => completeTask(task.taskId)}
-                      className="px-4 py-2 bg-slate-800 hover:bg-cyan-600 text-white rounded-xl text-xs font-bold transition-all"
-                    >
-                      Check-In
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+      {/* Current focus tasks */}
+      <section>
+        <div className="flex justify-between items-end mb-4">
+          <h3 className="font-display text-lg font-bold text-foreground">Current focus</h3>
+          <span className="text-sm text-muted-foreground font-mono">{focusTasks.length} tasks</span>
         </div>
-
-        {/* Weekly Goals Sidebar */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Award className="w-5 h-5 text-violet-400" />
-            Weekly Goal Alignment
-          </h2>
-
-          <div className="space-y-4">
-            {weeklyGoals.map((goal) => (
-              <div key={goal.goalId} className="glass-panel rounded-2xl p-5 border border-white/10 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-violet-400 bg-violet-950/60 border border-violet-800/40 px-2.5 py-1 rounded-md">
-                    Week Outcome
-                  </span>
-                  <span className="text-xs font-bold text-white">{goal.progress}% Done</span>
+        <div className="space-y-3">
+          {focusTasks.length === 0 && (
+            <p className="text-sm text-muted-foreground bg-card border border-border rounded-xl p-5">
+              No tasks yet — open Planner to plan tomorrow.
+            </p>
+          )}
+          {focusTasks.map((task) => {
+            const isDone = task.status === 'Completed';
+            const badge = priorityBadge(task.priority);
+            return (
+              <label
+                key={task.taskId}
+                className={`flex items-center gap-4 bg-card p-4 rounded-xl border border-border shadow-sm cursor-pointer group hover:border-primary/40 transition-colors min-h-[4.5rem] ${
+                  isDone ? 'opacity-60' : ''
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => !isDone && completeTask(task.taskId)}
+                  className={`relative flex items-center justify-center w-6 h-6 shrink-0 rounded-md border-2 transition-colors ${
+                    isDone
+                      ? 'bg-secondary border-secondary text-secondary-foreground'
+                      : 'border-border group-hover:border-primary'
+                  }`}
+                  aria-label={isDone ? 'Completed' : 'Complete task'}
+                >
+                  {isDone && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+                </button>
+                <div className={`flex-1 min-w-0 ${isDone ? 'line-through text-muted-foreground' : ''}`}>
+                  <p className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
+                    {task.title}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {task.session}
+                    {isDone ? ' · Completed' : ` · ${task.priority} priority · ${task.status}`}
+                  </p>
                 </div>
-                <h3 className="font-bold text-white text-base">{goal.title}</h3>
-                <p className="text-xs text-slate-300">{goal.description}</p>
+                {!isDone && task.status === 'Pending' && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      startTask(task.taskId);
+                    }}
+                    className="text-[10px] font-bold uppercase text-primary shrink-0 px-2 py-1 border border-primary/30 rounded-lg"
+                  >
+                    Start
+                  </button>
+                )}
+                {isDone ? (
+                  <span className="text-secondary text-xs font-mono font-bold shrink-0">Done</span>
+                ) : (
+                  <span
+                    className={`px-2 py-1 rounded text-[10px] font-bold tracking-widest uppercase shrink-0 ${badge.className}`}
+                  >
+                    {badge.label}
+                  </span>
+                )}
+              </label>
+            );
+          })}
+        </div>
+      </section>
 
-                <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden">
+      {/* Weekly goals compact */}
+      {weeklyGoals.filter((g) => g.status !== 'Archived').length > 0 && (
+        <section className="space-y-3">
+          <h3 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
+            <Award className="w-5 h-5 text-primary" />
+            Weekly goals
+          </h3>
+          {weeklyGoals
+            .filter((g) => g.status !== 'Archived')
+            .slice(0, 3)
+            .map((goal) => (
+              <div key={goal.goalId} className="bg-card border border-border rounded-xl p-4 space-y-2">
+                <div className="flex justify-between gap-2">
+                  <h4 className="font-semibold text-foreground text-sm truncate">{goal.title}</h4>
+                  <span className="text-xs font-mono font-bold text-primary shrink-0">{goal.progress}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-violet-500 to-cyan-400 rounded-full"
+                    className="h-full bg-primary rounded-full transition-all duration-300"
                     style={{ width: `${goal.progress}%` }}
                   />
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
+        </section>
+      )}
     </div>
   );
 };

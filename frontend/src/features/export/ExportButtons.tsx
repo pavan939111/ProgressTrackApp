@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Download, FileSpreadsheet, FileText } from 'lucide-react';
@@ -38,7 +38,7 @@ export function ExportButtons({ variant = 'daily' }: { variant?: 'daily' | 'week
     if (variant === 'weekly') {
       const report = weeklyReports[0];
       exportReportPdf({
-        title: `Weekly Report — ${report?.weekStart || todayPlan.date}`,
+        title: `Weekly Report â€” ${report?.weekStart || todayPlan.date}`,
         subtitle: user.fullName,
         stats: [
           { label: 'Completion', value: `${report?.completionPercentage ?? todayPlan.completionPercentage}%` },
@@ -66,7 +66,7 @@ export function ExportButtons({ variant = 'daily' }: { variant?: 'daily' | 'week
       <button
         type="button"
         onClick={onCsv}
-        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs font-bold text-emerald-400 hover:border-emerald-500/40"
+        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted border border-border text-xs font-bold text-secondary hover:border-emerald-500/40"
       >
         <FileSpreadsheet className="w-3.5 h-3.5" />
         Export CSV
@@ -74,13 +74,13 @@ export function ExportButtons({ variant = 'daily' }: { variant?: 'daily' | 'week
       <button
         type="button"
         onClick={onPdf}
-        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs font-bold text-cyan-400 hover:border-cyan-500/40"
+        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted border border-border text-xs font-bold text-primary hover:border-primary/40"
       >
         <FileText className="w-3.5 h-3.5" />
         Export PDF
       </button>
-      <span className="inline-flex items-center gap-1 text-[10px] text-slate-500">
-        <Download className="w-3 h-3" /> PDF opens print dialog — choose Save as PDF
+      <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Download className="w-3 h-3" /> PDF opens print dialog â€” choose Save as PDF
       </span>
     </div>
   );

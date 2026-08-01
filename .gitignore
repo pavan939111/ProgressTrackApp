@@ -1,4 +1,4 @@
-# dependencies
+use tit# dependencies
 node_modules/
 **/node_modules/
 .pnp
@@ -37,6 +37,8 @@ env
 env.*
 env (*)
 *.local
+deploy/*.env
+!deploy/*.env.example
 
 # vercel
 .vercel/
@@ -78,3 +80,9 @@ firebase.json
 .firebaserc
 **/serviceAccount*.json
 **/firebase-adminsdk*.json
+**/*firebase-adminsdk*.json
+*-firebase-adminsdk-*.json
+client_secret*.json
+**/client_secret*.json
+.data/
+**/.data/

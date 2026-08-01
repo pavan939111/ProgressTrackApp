@@ -2,57 +2,160 @@
 @tailwind components;
 @tailwind utilities;
 
+/* PTA design tokens from Stitch — Light (#F4F4F4) + Dark (best) */
+
 :root {
-  --background: 222 47% 4%;
-  --foreground: 210 40% 98%;
-  --primary: 187 92% 43%;
-  --primary-foreground: 222 47% 4%;
-  --secondary: 263 70% 50%;
-  --secondary-foreground: 210 40% 98%;
-  --card: 222 47% 6%;
-  --card-foreground: 210 40% 98%;
-  --border: 217 33% 17%;
+  --background: 0 0% 95.7%; /* #F4F4F4 */
+  --foreground: 222 47% 11%; /* #0F172A */
+  --muted: 0 0% 93%; /* #EEEEEE */
+  --muted-foreground: 215 16% 37%; /* #475569 */
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --primary: 192 83% 25%; /* #0E7490 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 161 94% 30%; /* #059669 */
+  --secondary-foreground: 0 0% 100%;
+  --accent: 32 95% 44%; /* #D97706 XP */
+  --accent-foreground: 0 0% 100%;
+  --border: 214 32% 91%; /* #E2E8F0 */
+  --ring: 192 83% 25%;
+  --danger: 0 72% 51%;
+  --surface-glass: 0 0% 100% / 0.82;
+  --header-glass: 0 0% 100% / 0.88;
+  --modal-glass: 0 0% 100% / 0.96;
+  --selection: 192 83% 25%;
+  --glow: 192 83% 35% / 0.2;
+  --primary-container: 187 85% 90%; /* #CFFAFE */
+  --theme-color: #0e7490;
+  color-scheme: light;
 }
 
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  overflow-x: hidden;
+.dark {
+  --background: 210 24% 6%; /* #0B0F14 */
+  --foreground: 210 40% 96%; /* #F1F5F9 */
+  --muted: 217 22% 12%; /* #151A21 */
+  --muted-foreground: 215 20% 65%; /* #94A3B8 */
+  --card: 217 22% 12%; /* #151A21 */
+  --card-foreground: 210 40% 96%;
+  --primary: 188 94% 53%; /* #22D3EE */
+  --primary-foreground: 210 24% 6%;
+  --secondary: 158 64% 52%; /* #34D399 */
+  --secondary-foreground: 210 24% 6%;
+  --accent: 43 96% 56%; /* #FBBF24 */
+  --accent-foreground: 210 24% 6%;
+  --border: 217 28% 18%; /* #243044 */
+  --ring: 188 94% 53%;
+  --danger: 0 91% 71%;
+  --surface-glass: 217 22% 12% / 0.82;
+  --header-glass: 210 24% 6% / 0.85;
+  --modal-glass: 210 24% 6% / 0.94;
+  --selection: 188 94% 53%;
+  --glow: 188 94% 53% / 0.25;
+  --primary-container: 192 60% 16%;
+  --theme-color: #22d3ee;
+  color-scheme: dark;
 }
 
-.glass-panel {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-body), "Plus Jakarta Sans", system-ui, sans-serif;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsl(var(--primary) / 0.08), transparent 55%),
+      linear-gradient(180deg, hsl(var(--background)), hsl(var(--background)));
+    min-height: 100dvh;
+  }
+
+  ::selection {
+    background-color: hsl(var(--selection) / 0.35);
+    color: hsl(var(--foreground));
+  }
 }
 
-.glass-card {
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+@layer components {
+  .font-display {
+    font-family: var(--font-display), "Space Grotesk", system-ui, sans-serif;
+  }
+
+  .glass-panel {
+    background: hsl(var(--header-glass));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .glass-card {
+    background: hsl(var(--surface-glass));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .glass-modal {
+    background: hsl(var(--modal-glass));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  .surface {
+    @apply rounded-2xl border;
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border-color: hsl(var(--border));
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold transition-all duration-200;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  .btn-primary:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 24px hsl(var(--glow));
+  }
+
+  .pulse-btn {
+    animation: pulse-soft 2.2s ease-out infinite;
+  }
 }
 
-.glass-modal {
-  background: rgba(9, 13, 22, 0.92);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+@keyframes pulse-soft {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 12px hsl(var(--primary) / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+  }
 }
 
-.shadow-glow {
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.35);
+@media (prefers-reduced-motion: reduce) {
+  .pulse-btn {
+    animation: none;
+  }
 }
 
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: hsl(var(--background));
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: hsl(var(--border));
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: hsl(var(--muted-foreground) / 0.45);
 }

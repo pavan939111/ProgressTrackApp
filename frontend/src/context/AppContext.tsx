@@ -1,9 +1,26 @@
-"use client";
+'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { UserProfile, UserSettings, WeeklyGoal, DailyPlan, Session, Task, DailyReport, WeeklyReport, Achievement } from '@/types';
-import { apiClient } from '@/services/api/apiClient';
+import {
+  Achievement,
+  DailyPlan,
+  DailyReport,
+  Priority,
+  Session,
+  SessionName,
+  Task,
+  UserProfile,
+  UserSettings,
+  WeeklyGoal,
+  WeeklyReport,
+} from '@/types';
+import { useAuth } from '@/context/AuthContext';
+import { defaultSettings, ptaStore } from '@/lib/ptaStore';
+import { requestNotificationPermission, scheduleReminders, getNextReminder } from '@/lib/reminders';
+import { initWebPush, sendServerPush } from '@/lib/fcmClient';
+import { recordTodaySnapshot } from '@/lib/analytics';
+import { levelFromXp } from '@/lib/gamification';
 
 interface AppContextType {
   user: UserProfile;
@@ -20,210 +37,365 @@ interface AppContextType {
   isPlannerOpen: boolean;
   isSettingsOpen: boolean;
   xpGain: { amount: number; reason: string } | null;
+  calendarDays: { date: string; completion: number; completed: boolean; goal: string }[];
+  nextReminder: { label: string; time: string; isTomorrow: boolean } | null;
+  refresh: () => void;
   openCheckIn: (session: Session) => void;
   closeCheckIn: () => void;
   openPlanner: () => void;
   closePlanner: () => void;
   openSettings: () => void;
   closeSettings: () => void;
-  completeTask: (taskId: string, notes?: string, blockers?: string, confidence?: number) => void;
   triggerConfetti: () => void;
+  saveSettings: (updates: Partial<UserSettings>) => void;
+  updateProfile: (updates: Partial<UserProfile>) => void;
+  createGoal: (input: { title: string; description?: string; priority?: Priority }) => void;
+  updateGoal: (goalId: string, updates: Partial<WeeklyGoal>) => void;
+  deleteGoal: (goalId: string) => void;
+  archiveGoal: (goalId: string) => void;
+  saveTomorrowPlan: (input: {
+    goal: string;
+    notes?: string;
+    tasks: { title: string; session: SessionName; priority: Priority; weeklyGoalId?: string }[];
+    asDraft?: boolean;
+  }) => void;
+  deleteTomorrowPlan: () => void;
+  completeTask: (taskId: string, notes?: string, blockers?: string, confidence?: number) => void;
+  skipTask: (taskId: string, reason: string) => void;
+  moveTask: (taskId: string, toDate: string) => void;
+  deleteTask: (taskId: string) => void;
+  startTask: (taskId: string) => void;
+  completeSession: (sessionId: string) => void;
+  generateDailyReport: () => DailyReport;
+  generateWeeklyReport: () => WeeklyReport;
+  enableNotifications: () => Promise<void>;
+  addCustomSession: (def: { name: string; start: string; end: string; reminder: string }) => void;
+  removeCustomSession: (name: string) => void;
 }
 
-const initialPlan: DailyPlan = {
-  planId: 'dp-today',
-  uid: 'demo-user-123',
+const emptyPlan = (uid: string): DailyPlan => ({
+  planId: 'empty',
+  uid,
   date: new Date().toISOString().split('T')[0],
-  title: 'High Focus Core Application Execution',
-  goal: 'Complete session check-ins, verify Firestore & Cloudinary sync',
-  notes: 'Stay accountable with session reminders and review daily progress.',
-  overallPriority: 'High',
-  completionPercentage: 35,
-  completedTasks: 2,
-  pendingTasks: 4,
-  weeklyGoalIds: ['wg-1'],
+  title: 'No plan yet',
+  goal: 'Open Plan Tomorrow to create your day',
+  overallPriority: 'Medium',
+  completionPercentage: 0,
+  completedTasks: 0,
+  pendingTasks: 0,
   status: 'In Progress',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
-};
-
-const defaultUser: UserProfile = {
-  uid: 'demo-user-123',
-  email: 'demo.user@example.com',
-  fullName: 'Demo User',
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  timezone: 'UTC',
-  notificationPermission: true,
-  pwaInstalled: false,
-  streak: 5,
-  totalXP: 1450,
-  level: 3,
-  lastActiveDate: new Date().toISOString().split('T')[0],
-  onboardingCompleted: true,
-};
-
-const defaultSettings: UserSettings = {
-  uid: 'demo-user-123',
-  morningReminder: '08:00',
-  beforeLunchReminder: '12:00',
-  afternoonReminder: '15:00',
-  eveningReminder: '18:00',
-  nightReminder: '21:00',
-  planningReminder: '22:00',
-  weeklyReminder: 'Sunday 20:00',
-  notificationsEnabled: true,
-  theme: 'dark',
-  workDays: [1, 2, 3, 4, 5, 6],
-  syncEnabled: true,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-};
+});
 
 const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<UserProfile>(defaultUser);
-  const [settings, setSettings] = useState<UserSettings>(defaultSettings);
+  const { user: authUser, refreshProfile } = useAuth();
+  const uid = authUser?.uid || 'demo-user-123';
+
+  const [user, setUser] = useState<UserProfile>(
+    authUser || {
+      uid,
+      email: 'demo.user@example.com',
+      fullName: 'Demo User',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      timezone: 'UTC',
+      notificationPermission: false,
+      pwaInstalled: false,
+      streak: 0,
+      totalXP: 0,
+      level: 1,
+      lastActiveDate: new Date().toISOString().split('T')[0],
+      onboardingCompleted: false,
+    }
+  );
+  const [settings, setSettings] = useState<UserSettings>(defaultSettings(uid));
   const [weeklyGoals, setWeeklyGoals] = useState<WeeklyGoal[]>([]);
-  const [todayPlan, setTodayPlan] = useState<DailyPlan>(initialPlan);
+  const [todayPlan, setTodayPlan] = useState<DailyPlan>(emptyPlan(uid));
   const [sessions, setSessions] = useState<Session[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [dailyReports, setDailyReports] = useState<DailyReport[]>([]);
   const [weeklyReports, setWeeklyReports] = useState<WeeklyReport[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [calendarDays, setCalendarDays] = useState<
+    { date: string; completion: number; completed: boolean; goal: string }[]
+  >([]);
   const [activeCheckInSession, setActiveCheckInSession] = useState<Session | null>(null);
   const [isPlannerOpen, setIsPlannerOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [xpGain, setXpGain] = useState<{ amount: number; reason: string } | null>(null);
 
-  const fetchAppData = () => {
-    apiClient.getDashboard().then((res) => {
-      if (res.success && res.data) {
-        const data = res.data as any;
-        setUser((prev) => ({
-          ...prev,
-          totalXP: data.totalXP ?? prev.totalXP,
-          level: data.userLevel ?? prev.level,
-          streak: data.streak ?? prev.streak,
-        }));
-        if (data.todayGoal) {
-          setTodayPlan((prev) => ({ ...prev, goal: data.todayGoal }));
-        }
-      }
-    });
-
-    apiClient.getTodayPlan().then((res) => {
-      if (res.success && res.data) {
-        const data = res.data as any;
-        if (data.plan) setTodayPlan(data.plan);
-        if (Array.isArray(data.sessions) && data.sessions.length > 0) setSessions(data.sessions);
-        if (Array.isArray(data.tasks) && data.tasks.length > 0) setTasks(data.tasks);
-      }
-    });
-
-    apiClient.getWeeklyGoals().then((res) => {
-      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-        setWeeklyGoals(res.data as WeeklyGoal[]);
-      }
-    });
-  };
+  const refresh = useCallback(() => {
+    if (!authUser) return;
+    ptaStore.ensureSeeded(authUser.uid, authUser.email, authUser.fullName);
+    const profile = ptaStore.getProfile(authUser.uid) || authUser;
+    setUser(profile);
+    setSettings(ptaStore.getSettings(authUser.uid));
+    setWeeklyGoals(ptaStore.listGoals(authUser.uid));
+    const bundle = ptaStore.getTodayBundle(authUser.uid);
+    setTodayPlan(bundle.plan);
+    setSessions(bundle.sessions);
+    setTasks(bundle.tasks);
+    setDailyReports(ptaStore.listDailyReports(authUser.uid));
+    setWeeklyReports(ptaStore.listWeeklyReports(authUser.uid));
+    setAchievements(ptaStore.listAchievements(authUser.uid));
+    setCalendarDays(ptaStore.calendarDays(authUser.uid, 35));
+    recordTodaySnapshot(bundle.plan, profile);
+    ptaStore.maybeAutoDailyReport(authUser.uid);
+    ptaStore.maybeAutoWeeklyReport(authUser.uid);
+    refreshProfile();
+  }, [authUser, refreshProfile]);
 
   useEffect(() => {
-    fetchAppData();
-    // Seed weekly report for export if empty
-    setWeeklyReports((prev) =>
-      prev.length
-        ? prev
-        : [
-            {
-              reportId: 'wr-current',
-              uid: defaultUser.uid,
-              weekStart: new Date(Date.now() - 6 * 86400000).toISOString().split('T')[0],
-              weekEnd: new Date().toISOString().split('T')[0],
-              completedTasks: 18,
-              pendingTasks: 4,
-              completionPercentage: 82,
-              achievements: ['5-day streak', 'Morning mastery'],
-              weeklyGoalSummary: 'Strong execution on core application milestones.',
-              consistencyScore: 78,
-              generatedAt: new Date().toISOString(),
-            },
-          ]
+    if (authUser) {
+      refresh();
+      void ptaStore.hydrateFromBackend().then((r) => {
+        if (r.hydrated) refresh();
+      });
+    }
+  }, [authUser, refresh]);
+
+  useEffect(() => {
+    if (!authUser) return;
+    scheduleReminders(
+      settings,
+      (payload) => {
+        void sendServerPush(authUser.uid, 'PTA Reminder', `${payload.label} — open PTA and check in.`);
+        if (payload.action === 'checkin' && payload.sessionHint) {
+          const ses = sessions.find((s) => s.name === payload.sessionHint);
+          if (ses) setActiveCheckInSession(ses);
+        } else if (payload.action === 'planner') {
+          setIsPlannerOpen(true);
+        }
+      },
+      { lastActiveDate: user.lastActiveDate }
     );
+    return () => scheduleReminders({ ...settings, notificationsEnabled: false });
+  }, [settings, authUser, sessions, user.lastActiveDate]);
+
+  // Deep-link from notification click / URL ?action=
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const applyAction = (action?: string | null, sessionHint?: string | null) => {
+      if (action === 'checkin') {
+        const ses =
+          (sessionHint && sessions.find((s) => s.name === sessionHint)) ||
+          sessions.find((s) => s.status === 'Active') ||
+          sessions[0];
+        if (ses) setActiveCheckInSession(ses);
+      } else if (action === 'planner') {
+        setIsPlannerOpen(true);
+      } else if (action === 'weekly') {
+        ptaStore.generateWeeklyReport(uid);
+        refresh();
+      }
+    };
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('action')) {
+      applyAction(params.get('action'), params.get('session'));
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    const onReminder = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { action?: string; sessionHint?: string };
+      applyAction(detail?.action, detail?.sessionHint);
+    };
+    window.addEventListener('pta-reminder-action', onReminder);
+    return () => window.removeEventListener('pta-reminder-action', onReminder);
+  }, [sessions, uid, refresh]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+    }
+    const onOnline = () => {
+      void ptaStore.flushPendingSync();
+    };
+    window.addEventListener('online', onOnline);
+    if (navigator.onLine) onOnline();
+    return () => window.removeEventListener('online', onOnline);
   }, []);
 
-  const activeSession = sessions.find((s) => s.status === 'Active') || sessions[0] || null;
-
   const triggerConfetti = () => {
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-    });
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
   };
 
-  const openCheckIn = (session: Session) => setActiveCheckInSession(session);
-  const closeCheckIn = () => setActiveCheckInSession(null);
-  const openPlanner = () => setIsPlannerOpen(true);
-  const closePlanner = () => setIsPlannerOpen(false);
-  const openSettings = () => setIsSettingsOpen(true);
-  const closeSettings = () => setIsSettingsOpen(false);
-
-  const completeTask = (taskId: string, notes?: string, blockers?: string, confidence?: number) => {
-    apiClient.completeTask(taskId, { notes, blockers, confidence }).then((res) => {
-      if (res.success && res.data) {
-        const { task, xpEarned } = res.data as any;
-        if (task) {
-          setTasks((prev) => prev.map((t) => (t.taskId === taskId ? task : t)));
-        }
-
-        if (xpEarned > 0) {
-          triggerConfetti();
-          setXpGain({ amount: xpEarned, reason: `Completed Task: ${task?.title || 'Task'}` });
-          setUser((prev) => ({
-            ...prev,
-            totalXP: prev.totalXP + xpEarned,
-            level: Math.floor((prev.totalXP + xpEarned) / 500) + 1,
-          }));
-          setTimeout(() => setXpGain(null), 3000);
-        }
-
-        fetchAppData();
-      }
-    });
+  const showXp = (amount: number, reason: string) => {
+    setXpGain({ amount, reason });
+    setTimeout(() => setXpGain(null), 2800);
   };
 
-  return (
-    <AppContext.Provider
-      value={{
-        user,
-        settings,
-        weeklyGoals,
-        todayPlan,
-        sessions,
-        tasks,
-        dailyReports,
-        weeklyReports,
-        achievements,
-        activeSession,
-        activeCheckInSession,
-        isPlannerOpen,
-        isSettingsOpen,
-        xpGain,
-        openCheckIn,
-        closeCheckIn,
-        openPlanner,
-        closePlanner,
-        openSettings,
-        closeSettings,
-        completeTask,
-        triggerConfetti,
-      }}
-    >
-      {children}
-    </AppContext.Provider>
+  const activeSession = useMemo(
+    () => sessions.find((s) => s.status === 'Active') || sessions[0] || null,
+    [sessions]
   );
+
+  const value: AppContextType = {
+    user,
+    settings,
+    weeklyGoals,
+    todayPlan,
+    sessions,
+    tasks,
+    dailyReports,
+    weeklyReports,
+    achievements,
+    activeSession,
+    activeCheckInSession,
+    isPlannerOpen,
+    isSettingsOpen,
+    xpGain,
+    calendarDays,
+    nextReminder: getNextReminder(settings),
+    refresh,
+    openCheckIn: (s) => setActiveCheckInSession(s),
+    closeCheckIn: () => setActiveCheckInSession(null),
+    openPlanner: () => setIsPlannerOpen(true),
+    closePlanner: () => setIsPlannerOpen(false),
+    openSettings: () => setIsSettingsOpen(true),
+    closeSettings: () => setIsSettingsOpen(false),
+    triggerConfetti,
+    saveSettings: (updates) => {
+      const next = ptaStore.saveSettings({ ...settings, ...updates, uid });
+      setSettings(next);
+      scheduleReminders(next, undefined, { lastActiveDate: user.lastActiveDate });
+    },
+    updateProfile: (updates) => {
+      const next = ptaStore.saveProfile({ ...user, ...updates, updatedAt: new Date().toISOString() });
+      setUser(next);
+      refreshProfile();
+    },
+    createGoal: (input) => {
+      ptaStore.createGoal(uid, input);
+      const profile = awardLocal(100, 'New weekly goal');
+      setUser(profile);
+      triggerConfetti();
+      refresh();
+    },
+    updateGoal: (goalId, updates) => {
+      ptaStore.updateGoal(uid, goalId, updates);
+      refresh();
+    },
+    deleteGoal: (goalId) => {
+      ptaStore.deleteGoal(uid, goalId);
+      refresh();
+    },
+    archiveGoal: (goalId) => {
+      ptaStore.archiveGoal(uid, goalId);
+      refresh();
+    },
+    saveTomorrowPlan: (input) => {
+      const result = ptaStore.saveTomorrowPlan(uid, input);
+      setUser(result.profile);
+      if (result.xpEarned) showXp(result.xpEarned, input.asDraft ? 'Draft saved' : 'Night planning saved');
+      if (!input.asDraft) triggerConfetti();
+      setIsPlannerOpen(false);
+      refresh();
+    },
+    deleteTomorrowPlan: () => {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      ptaStore.deletePlan(uid, d.toISOString().split('T')[0]);
+      refresh();
+    },
+    completeTask: (taskId, notes, blockers, confidence) => {
+      const result = ptaStore.completeTask(uid, taskId, { notes, blockers, confidence });
+      if (!result) return;
+      setUser(result.profile);
+      showXp(result.xpEarned, `Completed: ${result.task.title}`);
+      triggerConfetti();
+      refresh();
+    },
+    skipTask: (taskId, reason) => {
+      ptaStore.skipTask(uid, taskId, reason);
+      refresh();
+    },
+    moveTask: (taskId, toDate) => {
+      ptaStore.moveTask(uid, taskId, toDate);
+      refresh();
+    },
+    deleteTask: (taskId) => {
+      ptaStore.deleteTask(uid, taskId);
+      refresh();
+    },
+    startTask: (taskId) => {
+      ptaStore.startTask(uid, taskId);
+      refresh();
+    },
+    completeSession: (sessionId) => {
+      const result = ptaStore.completeSession(uid, sessionId);
+      if (result) {
+        setUser(result.profile);
+        if (result.xpEarned) showXp(result.xpEarned, `${result.session.name} complete`);
+        triggerConfetti();
+      }
+      setActiveCheckInSession(null);
+      refresh();
+    },
+    generateDailyReport: () => {
+      const report = ptaStore.generateDailyReport(uid);
+      refresh();
+      return report;
+    },
+    generateWeeklyReport: () => {
+      const report = ptaStore.generateWeeklyReport(uid);
+      refresh();
+      return report;
+    },
+    enableNotifications: async () => {
+      const ok = await requestNotificationPermission();
+      let fcmOk = false;
+      if (ok && authUser) {
+        const fcm = await initWebPush(authUser.uid);
+        fcmOk = fcm.ok;
+      }
+      const next = ptaStore.saveSettings({
+        ...settings,
+        notificationsEnabled: ok,
+        updatedAt: new Date().toISOString(),
+      });
+      setSettings(next);
+      ptaStore.saveProfile({ ...user, notificationPermission: ok });
+      if (ok) {
+        scheduleReminders(
+          next,
+          (payload) => {
+            if (authUser) {
+              void sendServerPush(authUser.uid, 'PTA Reminder', `${payload.label} — open PTA and check in.`);
+            }
+          },
+          { lastActiveDate: user.lastActiveDate }
+        );
+      }
+      if (ok && !fcmOk) {
+        console.warn('Local notifications on; FCM server pipeline needs VAPID + Admin credentials');
+      }
+    },
+    addCustomSession: (def) => {
+      ptaStore.addCustomSession(uid, def);
+      refresh();
+    },
+    removeCustomSession: (name) => {
+      ptaStore.removeCustomSession(uid, name);
+      refresh();
+    },
+  };
+
+  function awardLocal(amount: number, reason: string) {
+    const totalXP = user.totalXP + amount;
+    const profile = ptaStore.saveProfile({
+      ...user,
+      totalXP,
+      level: levelFromXp(totalXP),
+      updatedAt: new Date().toISOString(),
+    });
+    showXp(amount, reason);
+    return profile;
+  }
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
 export const useApp = () => {

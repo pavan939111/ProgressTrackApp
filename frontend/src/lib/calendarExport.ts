@@ -7,7 +7,11 @@ export function loadCalendarConnections(): CalendarConnection[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultConnections();
-    return JSON.parse(raw) as CalendarConnection[];
+    const stored = JSON.parse(raw) as CalendarConnection[];
+    return stored.filter(
+      (c): c is CalendarConnection =>
+        c.provider === 'google' || c.provider === 'apple' || c.provider === 'ics'
+    );
   } catch {
     return defaultConnections();
   }
@@ -21,7 +25,6 @@ export function saveCalendarConnections(connections: CalendarConnection[]) {
 function defaultConnections(): CalendarConnection[] {
   return [
     { provider: 'google', connected: false, syncSessions: true, syncTasks: true },
-    { provider: 'outlook', connected: false, syncSessions: true, syncTasks: true },
     { provider: 'apple', connected: false, syncSessions: true, syncTasks: false },
     { provider: 'ics', connected: true, syncSessions: true, syncTasks: true, lastSyncedAt: new Date().toISOString() },
   ];
@@ -107,14 +110,6 @@ export function openProviderAddEvent(
     const dates = `${start.replace(/[-:]/g, '').slice(0, 15)}/${end.replace(/[-:]/g, '').slice(0, 15)}`;
     window.open(
       `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}`,
-      '_blank'
-    );
-    return;
-  }
-
-  if (provider === 'outlook') {
-    window.open(
-      `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject=${title}&startdt=${encodeURIComponent(start)}&enddt=${encodeURIComponent(end)}&body=${details}`,
       '_blank'
     );
     return;

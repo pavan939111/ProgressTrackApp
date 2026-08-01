@@ -1,106 +1,160 @@
-"use client";
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { Award, Plus, Target, CheckCircle2, Flag } from 'lucide-react';
-import { apiClient } from '@/services/api/apiClient';
+import { Award, Plus, Archive, Trash2, Pencil } from 'lucide-react';
+import { Priority } from '@/types';
 
 export const WeeklyGoalsView = () => {
-  const { weeklyGoals, triggerConfetti } = useApp();
+  const { weeklyGoals, createGoal, updateGoal, deleteGoal, archiveGoal, triggerConfetti } = useApp();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState<Priority>('High');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
 
   const handleCreateGoal = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title) return;
-    apiClient
-      .saveWeeklyGoal({
-        title,
-        description,
-        priority: 'High',
-        weekStart: '2026-07-27',
-        weekEnd: '2026-08-02',
-        status: 'Active',
-      })
-      .then(() => {
-        triggerConfetti();
-        setTitle('');
-        setDescription('');
-      });
+    if (!title.trim()) return;
+    createGoal({ title: title.trim(), description, priority });
+    setTitle('');
+    setDescription('');
+    triggerConfetti();
   };
 
+  const active = weeklyGoals.filter((g) => g.status !== 'Archived');
+  const archived = weeklyGoals.filter((g) => g.status === 'Archived');
+
+  const fieldClass =
+    'bg-muted border border-border rounded-xl p-3.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary min-h-12';
+
   return (
-    <div className="space-y-8 pb-12">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-            <Award className="w-8 h-8 text-violet-400" />
-            Weekly High-Outcome Goals
-          </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Align daily sessions with macro outcomes for maximum momentum.
-          </p>
-        </div>
+    <div className="space-y-8 pb-8 font-body">
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">Outcomes</p>
+        <h1 className="font-display text-3xl font-bold text-foreground tracking-tight flex items-center gap-3">
+          <Award className="w-7 h-7 text-primary" />
+          Weekly goals
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Create and track weekly objectives linked to daily tasks.
+        </p>
       </div>
 
-      {/* Create New Goal Card */}
-      <div className="glass-panel rounded-3xl p-6 border border-white/10 bg-slate-950/80">
-        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Plus className="w-5 h-5 text-cyan-400" />
-          Create New Weekly Outcome Goal
+      <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
+        <h2 className="font-display text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+          <Plus className="w-5 h-5 text-primary" /> Create weekly goal
         </h2>
-
-        <form onSubmit={handleCreateGoal} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <form onSubmit={handleCreateGoal} className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <input
-            type="text"
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Goal Title..."
-            className="bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            placeholder="Goal title (required)"
+            className={fieldClass}
           />
           <input
-            type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Key success metric or description..."
-            className="bg-slate-900 border border-white/10 rounded-xl p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            placeholder="Success metric…"
+            className={fieldClass}
           />
-          <button
-            type="submit"
-            className="bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 text-white font-bold text-sm px-6 py-3 rounded-xl shadow-lg transition-all"
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value as Priority)}
+            className={fieldClass}
           >
-            Add Goal (+200 XP)
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <button type="submit" className="btn-primary min-h-12 text-sm">
+            Add goal (+100 XP)
           </button>
         </form>
       </div>
 
-      {/* Active Goals Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {weeklyGoals.map((goal) => (
-          <div key={goal.goalId} className="glass-panel rounded-3xl p-6 border border-white/10 space-y-5 bg-slate-950/60">
-            <div className="flex items-center justify-between">
-              <span className="px-3 py-1 text-xs font-semibold text-cyan-400 bg-cyan-950/60 border border-cyan-800/40 rounded-full">
-                {goal.priority} Priority Goal
-              </span>
-              <span className="text-sm font-bold text-emerald-400 flex items-center gap-1">
-                <Flag className="w-4 h-4" /> {goal.progress}% Completed
-              </span>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-bold text-white">{goal.title}</h3>
-              {goal.description && <p className="text-sm text-slate-300 mt-1">{goal.description}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs text-slate-400 font-medium">
-                <span>Task Completion Progress</span>
-                <span>{goal.completedTasks} / {goal.totalTasks} Tasks</span>
+      <div className="grid grid-cols-1 gap-4">
+        {active.length === 0 && (
+          <p className="text-sm text-muted-foreground bg-card border border-border rounded-xl p-5">
+            No active weekly goals yet.
+          </p>
+        )}
+        {active.map((goal) => (
+          <div key={goal.goalId} className="bg-card rounded-2xl p-5 border border-border shadow-sm space-y-4">
+            {editingId === goal.goalId ? (
+              <form
+                className="flex gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  updateGoal(goal.goalId, { title: editTitle });
+                  setEditingId(null);
+                }}
+              >
+                <input
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className={`flex-1 ${fieldClass}`}
+                />
+                <button type="submit" className="text-xs font-bold text-primary px-3 min-h-12">
+                  Save
+                </button>
+              </form>
+            ) : (
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase font-bold text-primary tracking-wider">
+                    {goal.priority} · {goal.status}
+                  </p>
+                  <h3 className="font-display text-lg font-bold text-foreground mt-1">{goal.title}</h3>
+                  {goal.description && (
+                    <p className="text-xs text-muted-foreground mt-1">{goal.description}</p>
+                  )}
+                  <p className="text-[11px] text-muted-foreground mt-2 font-mono">
+                    Week {goal.weekStart} → {goal.weekEnd}
+                  </p>
+                </div>
+                <div className="flex gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(goal.goalId);
+                      setEditTitle(goal.title);
+                    }}
+                    className="p-2.5 min-h-11 min-w-11 text-muted-foreground hover:text-foreground"
+                    aria-label="Edit"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => archiveGoal(goal.goalId)}
+                    className="p-2.5 min-h-11 min-w-11 text-muted-foreground hover:text-accent"
+                    title="Archive"
+                  >
+                    <Archive className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteGoal(goal.goalId)}
+                    className="p-2.5 min-h-11 min-w-11 text-muted-foreground hover:text-danger"
+                    aria-label="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-white/5">
+            )}
+            <div>
+              <div className="flex justify-between text-xs mb-1.5">
+                <span className="text-muted-foreground">Progress</span>
+                <span className="text-primary font-bold font-mono tabular-nums">
+                  {goal.progress}% · {goal.completedTasks}/{goal.totalTasks}
+                </span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-cyan-400 via-violet-500 to-emerald-400 rounded-full transition-all duration-500"
+                  className="h-full bg-primary rounded-full transition-all duration-300"
                   style={{ width: `${goal.progress}%` }}
                 />
               </div>
@@ -108,6 +162,27 @@ export const WeeklyGoalsView = () => {
           </div>
         ))}
       </div>
+
+      {archived.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Archived</h2>
+          {archived.map((g) => (
+            <div
+              key={g.goalId}
+              className="flex justify-between items-center p-3.5 rounded-xl border border-border bg-muted/40 text-sm text-muted-foreground"
+            >
+              <span>{g.title}</span>
+              <button
+                type="button"
+                onClick={() => deleteGoal(g.goalId)}
+                className="text-danger text-xs font-bold min-h-11 px-2"
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
