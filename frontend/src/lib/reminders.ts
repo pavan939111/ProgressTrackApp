@@ -12,6 +12,8 @@ export type ReminderFirePayload = {
   sessionHint?: string;
 };
 
+export type NotificationPermissionState = 'unsupported' | 'granted' | 'denied' | 'default' | 'prompt';
+
 function msUntil(hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number);
   const target = new Date();
@@ -23,7 +25,6 @@ function msUntil(hhmm: string): number {
 }
 
 function msUntilWeekly(weeklyReminder: string): number {
-  // Format: "Sunday 20:00" or "20:00" (defaults to Sunday)
   const parts = weeklyReminder.trim().split(/\s+/);
   let dayName = 'Sunday';
   let time = '20:00';
@@ -54,38 +55,146 @@ function msUntilWeekly(weeklyReminder: string): number {
   return diff;
 }
 
-export async function requestNotificationPermission(): Promise<boolean> {
-  if (typeof window === 'undefined' || !('Notification' in window)) return false;
-  if (Notification.permission === 'granted') return true;
-  if (Notification.permission === 'denied') return false;
-  const result = await Notification.requestPermission();
-  return result === 'granted';
+export function notificationsSupported(): boolean {
+  return typeof window !== 'undefined' && 'Notification' in window;
 }
 
-export function sendReminder(title: string, body: string, action?: ReminderAction, sessionHint?: string) {
-  if (typeof window === 'undefined' || !('Notification' in window)) return;
-  if (Notification.permission !== 'granted') return;
+export function getNotificationPermission(): NotificationPermissionState {
+  if (!notificationsSupported()) return 'unsupported';
+  return Notification.permission as NotificationPermissionState;
+}
+
+export function isStandalonePwa(): boolean {
+  if (typeof window === 'undefined') return false;
+  const mq = window.matchMedia('(display-mode: standalone)').matches;
+  const ios = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+  return mq || ios;
+}
+
+export function isIosDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+/** Request notification permission from a user gesture. */
+export async function requestNotificationPermission(): Promise<{
+  granted: boolean;
+  permission: NotificationPermissionState;
+  message: string;
+}> {
+  if (!notificationsSupported()) {
+    return {
+      granted: false,
+      permission: 'unsupported',
+      message: 'This browser does not support web notifications.',
+    };
+  }
+
+  if (Notification.permission === 'granted') {
+    return { granted: true, permission: 'granted', message: 'Notifications already allowed.' };
+  }
+
+  if (Notification.permission === 'denied') {
+    return {
+      granted: false,
+      permission: 'denied',
+      message: isIosDevice()
+        ? 'Notifications blocked. On iPhone: Settings → Notifications → PTA (or Safari) → Allow Notifications. Also install PTA to Home Screen first.'
+        : 'Notifications blocked. Open your browser site settings and allow Notifications for this app, then try again.',
+    };
+  }
+
+  // iOS only delivers web push/notifications reliably when installed to Home Screen
+  if (isIosDevice() && !isStandalonePwa()) {
+    return {
+      granted: false,
+      permission: 'default',
+      message: 'On iPhone/iPad: tap Share → Add to Home Screen, open PTA from the icon, then enable notifications.',
+    };
+  }
+
   try {
-    const n = new Notification(title, {
-      body,
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/icon-192x192.png',
-      tag: `pta-${title}-${action || 'generic'}`,
-      data: { action, sessionHint },
-    });
+    const result = await Notification.requestPermission();
+    const permission = result as NotificationPermissionState;
+    if (result === 'granted') {
+      return { granted: true, permission, message: 'Notification permission granted.' };
+    }
+    if (result === 'denied') {
+      return {
+        granted: false,
+        permission,
+        message: 'Permission denied. Enable Notifications in system/browser settings for PTA.',
+      };
+    }
+    return { granted: false, permission, message: 'Permission not granted yet.' };
+  } catch (e: any) {
+    return {
+      granted: false,
+      permission: getNotificationPermission(),
+      message: e?.message || 'Could not request notification permission.',
+    };
+  }
+}
+
+async function showViaServiceWorker(
+  title: string,
+  options: NotificationOptions & { data?: Record<string, unknown> }
+): Promise<boolean> {
+  if (!('serviceWorker' in navigator)) return false;
+  try {
+    const reg = (await navigator.serviceWorker.getRegistration('/')) || (await navigator.serviceWorker.ready);
+    if (!reg?.showNotification) return false;
+    await reg.showNotification(title, options);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Show a local reminder — prefers Service Worker (required on Android/mobile). */
+export async function sendReminder(
+  title: string,
+  body: string,
+  action?: ReminderAction,
+  sessionHint?: string
+) {
+  if (typeof window === 'undefined' || !notificationsSupported()) return;
+  if (Notification.permission !== 'granted') return;
+
+  const options: NotificationOptions = {
+    body,
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-192x192.png',
+    tag: `pta-${action || 'generic'}-${sessionHint || title}`,
+    data: {
+      action,
+      sessionHint,
+      link: action
+        ? `/?action=${encodeURIComponent(action)}${sessionHint ? `&session=${encodeURIComponent(sessionHint)}` : ''}`
+        : '/',
+    },
+  };
+
+  const viaSw = await showViaServiceWorker(title, options);
+  if (viaSw) return;
+
+  try {
+    const n = new Notification(title, options);
     n.onclick = () => {
       window.focus();
-      const params = new URLSearchParams();
-      if (action) params.set('action', action);
-      if (sessionHint) params.set('session', sessionHint);
-      const url = `${window.location.pathname}?${params.toString()}`;
-      window.history.replaceState({}, '', url);
       window.dispatchEvent(new CustomEvent('pta-reminder-action', { detail: { action, sessionHint } }));
       n.close();
     };
   } catch {
     // ignore
   }
+}
+
+export async function sendTestNotification(): Promise<{ ok: boolean; message: string }> {
+  const perm = await requestNotificationPermission();
+  if (!perm.granted) return { ok: false, message: perm.message };
+  await sendReminder('PTA', 'Reminders are working. You’ll get session alerts at your set times.', 'checkin', 'Morning');
+  return { ok: true, message: 'Test notification sent. Check your notification shade.' };
 }
 
 export function clearReminders() {
@@ -131,6 +240,9 @@ export function scheduleReminders(
 ) {
   clearReminders();
   if (!settings.notificationsEnabled) return;
+  if (typeof window !== 'undefined' && notificationsSupported() && Notification.permission !== 'granted') {
+    return;
+  }
 
   const slots: { label: string; time: string; action: ReminderAction; sessionHint?: string }[] = [
     { label: 'Morning session', time: settings.morningReminder, action: 'checkin', sessionHint: 'Morning' },
@@ -150,31 +262,29 @@ export function scheduleReminders(
     if (!time) return;
     const delay = msUntil(time);
     const handle = setTimeout(() => {
-      sendReminder('PTA Reminder', `${label} — tap to open.`, action, sessionHint);
+      void sendReminder('PTA Reminder', `${label} — tap to open.`, action, sessionHint);
       onFire?.({ label, action, sessionHint });
       scheduleReminders(settings, onFire, opts);
     }, Math.min(delay, 2147483647));
     handles.push(handle);
   });
 
-  // Weekly review (R-04)
   if (settings.weeklyReminder) {
     const delay = msUntilWeekly(settings.weeklyReminder);
     const handle = setTimeout(() => {
-      sendReminder('PTA Weekly Review', 'Review your week and generate your weekly report.', 'weekly');
+      void sendReminder('PTA Weekly Review', 'Review your week and generate your weekly report.', 'weekly');
       onFire?.({ label: 'Weekly review', action: 'weekly' });
       scheduleReminders(settings, onFire, opts);
     }, Math.min(delay, 2147483647));
     handles.push(handle);
   }
 
-  // Inactivity nudge (R-05) — if last active was yesterday or earlier, remind once today at 10:00
   if (opts?.lastActiveDate) {
     const today = new Date().toISOString().split('T')[0];
     if (opts.lastActiveDate < today) {
       const delay = msUntil('10:00');
       const handle = setTimeout(() => {
-        sendReminder('PTA Misses You', 'You have pending plans — open PTA and check in.', 'inactivity');
+        void sendReminder('PTA Misses You', 'You have pending plans — open PTA and check in.', 'inactivity');
         onFire?.({ label: 'Inactivity', action: 'inactivity' });
       }, Math.min(delay, 2147483647));
       handles.push(handle);

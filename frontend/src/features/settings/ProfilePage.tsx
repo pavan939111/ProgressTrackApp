@@ -19,12 +19,16 @@ export function ProfilePage() {
     user,
     updateProfile,
     enableNotifications,
+    sendTestReminder,
     addCustomSession,
     removeCustomSession,
   } = useApp();
   const { logout } = useAuth();
   const { canInstall, isInstalled, isStandalone, swReady, install } = usePwa();
   const [installMsg, setInstallMsg] = useState<string | null>(null);
+  const [notifMsg, setNotifMsg] = useState<string | null>(null);
+  const [notifBusy, setNotifBusy] = useState(false);
+  const [permissionLabel, setPermissionLabel] = useState('checking…');
   const [section, setSection] = useState<'profile' | 'appearance' | 'reminders' | 'sessions' | 'calendar'>(
     'profile'
   );
@@ -54,6 +58,44 @@ export function ProfilePage() {
     setPlanning(settings.planningReminder);
     setWeekly(settings.weeklyReminder);
   }, [user.fullName, settings]);
+
+  useEffect(() => {
+    const refreshPerm = () => {
+      if (typeof window === 'undefined' || !('Notification' in window)) {
+        setPermissionLabel('unsupported');
+        return;
+      }
+      setPermissionLabel(Notification.permission);
+    };
+    refreshPerm();
+    const id = window.setInterval(refreshPerm, 2500);
+    return () => clearInterval(id);
+  }, []);
+
+  const enableNotifs = async () => {
+    setNotifBusy(true);
+    setNotifMsg(null);
+    try {
+      const res = await enableNotifications();
+      setNotifMsg(res.message);
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        setPermissionLabel(Notification.permission);
+      }
+    } finally {
+      setNotifBusy(false);
+    }
+  };
+
+  const testNotif = async () => {
+    setNotifBusy(true);
+    setNotifMsg(null);
+    try {
+      const res = await sendTestReminder();
+      setNotifMsg(res.message);
+    } finally {
+      setNotifBusy(false);
+    }
+  };
 
   const save = () => {
     if (section === 'profile') {
@@ -172,12 +214,39 @@ export function ProfilePage() {
             </p>
             <button
               type="button"
-              onClick={() => void enableNotifications()}
-              className="flex items-center gap-2 px-4 py-2.5 min-h-11 rounded-xl border border-border text-xs font-bold text-primary"
+              onClick={() => void enableNotifs()}
+              disabled={notifBusy}
+              className="flex items-center gap-2 px-4 py-2.5 min-h-11 rounded-xl border border-border text-xs font-bold text-primary disabled:opacity-60"
             >
               <Bell className="w-4 h-4" />
-              {user.notificationPermission ? 'Notifications + FCM enabled' : 'Enable reminders + FCM push'}
+              {notifBusy
+                ? 'Requesting permission…'
+                : user.notificationPermission || settings.notificationsEnabled
+                  ? 'Re-enable reminders + notifications'
+                  : 'Allow reminders + notifications'}
             </button>
+            <button
+              type="button"
+              onClick={() => void testNotif()}
+              disabled={notifBusy}
+              className="flex items-center gap-2 px-4 py-2.5 min-h-11 rounded-xl border border-border text-xs font-bold text-foreground disabled:opacity-60"
+            >
+              <Bell className="w-4 h-4" />
+              Send test notification
+            </button>
+            <div className="rounded-xl border border-border bg-muted/40 p-3 space-y-1 text-xs text-muted-foreground">
+              <p>
+                Permission: <span className="font-bold text-foreground">{permissionLabel}</span>
+                {' · '}
+                Reminders: <span className="font-bold text-foreground">{settings.notificationsEnabled ? 'on' : 'off'}</span>
+              </p>
+              <p>
+                Mobile tip: Android needs this permission prompt. iPhone needs <strong>Add to Home Screen</strong> first,
+                then open PTA from the icon and allow notifications. Web apps cannot use native Alarm permission — session
+                times use notifications instead.
+              </p>
+              {notifMsg && <p className="text-secondary font-semibold pt-1">{notifMsg}</p>}
+            </div>
 
             <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-3">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Progressive Web App</p>
@@ -252,6 +321,39 @@ export function ProfilePage() {
 
         {section === 'reminders' && (
           <div className="space-y-3">
+            <div className="rounded-xl border border-primary/25 bg-primary/5 p-4 space-y-3">
+              <p className="text-sm font-semibold text-foreground">Notification & reminder access</p>
+              <p className="text-xs text-muted-foreground">
+                Status: <strong className="text-foreground">{permissionLabel}</strong>
+                {isStandalone ? ' · installed app' : ' · browser tab'}
+                {swReady ? ' · service worker ready' : ''}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="button"
+                  onClick={() => void enableNotifs()}
+                  disabled={notifBusy}
+                  className="btn-primary px-4 py-2.5 text-xs min-h-11 disabled:opacity-60"
+                >
+                  <Bell className="w-4 h-4" />
+                  {notifBusy ? 'Please wait…' : 'Allow notifications'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void testNotif()}
+                  disabled={notifBusy}
+                  className="px-4 py-2.5 rounded-xl border border-border text-xs font-bold min-h-11 disabled:opacity-60"
+                >
+                  Test alert
+                </button>
+              </div>
+              {notifMsg && <p className="text-xs text-secondary font-semibold">{notifMsg}</p>}
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                There is no separate “alarm permission” on the web. PTA uses Notifications for session reminders. Keep
+                reminder times below enabled, and leave Notifications allowed in phone settings.
+              </p>
+            </div>
+
             {(
               [
                 ['Morning', morning, setMorning],
@@ -288,7 +390,14 @@ export function ProfilePage() {
               <input
                 type="checkbox"
                 checked={settings.notificationsEnabled}
-                onChange={(e) => saveSettings({ notificationsEnabled: e.target.checked })}
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  if (on) {
+                    void enableNotifs();
+                  } else {
+                    saveSettings({ notificationsEnabled: false });
+                  }
+                }}
               />
               Reminders enabled
             </label>

@@ -17,7 +17,7 @@ import {
 } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { defaultSettings, ptaStore } from '@/lib/ptaStore';
-import { requestNotificationPermission, scheduleReminders, getNextReminder } from '@/lib/reminders';
+import { requestNotificationPermission, scheduleReminders, getNextReminder, sendTestNotification } from '@/lib/reminders';
 import { initWebPush, sendServerPush } from '@/lib/fcmClient';
 import { recordTodaySnapshot } from '@/lib/analytics';
 import { levelFromXp } from '@/lib/gamification';
@@ -67,7 +67,8 @@ interface AppContextType {
   ) => void;
   generateDailyReport: () => DailyReport;
   generateWeeklyReport: () => WeeklyReport;
-  enableNotifications: () => Promise<void>;
+  enableNotifications: () => Promise<{ ok: boolean; message: string }>;
+  sendTestReminder: () => Promise<{ ok: boolean; message: string }>;
   addCustomSession: (def: { name: string; start: string; end: string; reminder: string }) => void;
   removeCustomSession: (name: string) => void;
 }
@@ -338,34 +339,65 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       return report;
     },
     enableNotifications: async () => {
-      const ok = await requestNotificationPermission();
-      let fcmOk = false;
-      if (ok && authUser) {
-        const fcm = await initWebPush(authUser.uid);
-        fcmOk = fcm.ok;
+      const perm = await requestNotificationPermission();
+      if (!perm.granted) {
+        const nextOff = ptaStore.saveSettings({
+          ...settings,
+          notificationsEnabled: false,
+          updatedAt: new Date().toISOString(),
+        });
+        setSettings(nextOff);
+        return { ok: false, message: perm.message };
       }
+
+      // Ensure SW is ready before mobile notifications (Android requires SW showNotification)
+      if ('serviceWorker' in navigator) {
+        try {
+          await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+          await navigator.serviceWorker.ready;
+        } catch {
+          /* continue with local Notification API */
+        }
+      }
+
+      let fcmMsg = '';
+      if (authUser) {
+        const fcm = await initWebPush(authUser.uid);
+        if (!fcm.ok) fcmMsg = fcm.message ? ` Push: ${fcm.message}` : '';
+      }
+
       const next = ptaStore.saveSettings({
         ...settings,
-        notificationsEnabled: ok,
+        notificationsEnabled: true,
         updatedAt: new Date().toISOString(),
       });
       setSettings(next);
-      ptaStore.saveProfile({ ...user, notificationPermission: ok });
-      if (ok) {
-        scheduleReminders(
-          next,
-          (payload) => {
-            if (authUser) {
-              void sendServerPush(authUser.uid, 'PTA Reminder', `${payload.label} — open PTA and check in.`);
-            }
-          },
-          { lastActiveDate: user.lastActiveDate }
-        );
-      }
-      if (ok && !fcmOk) {
-        console.warn('Local notifications on; FCM server pipeline needs VAPID + Admin credentials');
-      }
+      const profile = ptaStore.saveProfile({
+        ...user,
+        notificationPermission: true,
+        updatedAt: new Date().toISOString(),
+      });
+      setUser(profile);
+      refreshProfile();
+
+      scheduleReminders(
+        next,
+        (payload) => {
+          if (authUser) {
+            void sendServerPush(authUser.uid, 'PTA Reminder', `${payload.label} — open PTA and check in.`);
+          }
+        },
+        { lastActiveDate: user.lastActiveDate }
+      );
+
+      await sendTestNotification().catch(() => undefined);
+
+      return {
+        ok: true,
+        message: `Reminders & notifications enabled.${fcmMsg}`,
+      };
     },
+    sendTestReminder: async () => sendTestNotification(),
     addCustomSession: (def) => {
       ptaStore.addCustomSession(uid, def);
       refresh();
