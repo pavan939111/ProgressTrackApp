@@ -7,6 +7,8 @@ import { CalendarIntegrationsPanel } from '@/features/integrations/CalendarInteg
 import { applyDocumentTheme } from '@/components/ThemeSync';
 import { useAuth } from '@/context/AuthContext';
 import { usePwa } from '@/components/PwaRegister';
+import { compressImageForUpload } from '@/lib/compressImage';
+import { authHeaders } from '@/lib/authClient';
 
 function apiBase() {
   return (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
@@ -122,30 +124,28 @@ export function ProfilePage() {
 
   const onPickImage = async (file: File | null) => {
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setUploadMsg('Please choose an image file');
+      return;
+    }
     setUploading(true);
     setUploadMsg(null);
     try {
-      const reader = new FileReader();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      const dataUrl = await compressImageForUpload(file);
       const res = await fetch(`${apiBase()}/api/upload`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ image: dataUrl, uid: user.uid }),
       });
-      const json = await res.json();
+      const json = await res.json().catch(() => ({ success: false, message: `HTTP ${res.status}` }));
       if (json.success && json.data?.url) {
         updateProfile({ profileImage: json.data.url });
         setUploadMsg('Profile photo updated');
       } else {
-        updateProfile({ profileImage: dataUrl });
-        setUploadMsg(json.message || 'Saved locally (Cloudinary unavailable)');
+        setUploadMsg(json.message || 'Upload failed — check you are signed in and try a smaller image');
       }
-    } catch {
-      setUploadMsg('Upload failed');
+    } catch (e: any) {
+      setUploadMsg(e?.message || 'Upload failed');
     } finally {
       setUploading(false);
     }

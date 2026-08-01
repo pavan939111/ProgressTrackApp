@@ -70,6 +70,18 @@ Ensure Authorized redirect URIs include:
 
 Cloud name, API key, API secret — backend only.
 
+If photo upload fails with **Invalid Signature** / **api_secret mismatch**, open
+[Cloudinary Console → Settings → API Keys](https://console.cloudinary.com/settings/api-keys),
+generate a new key, and update on the backend Vercel project:
+
+- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- or a single `CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME`
+
+PTA also falls back to **Firebase Storage** (`profiles/{uid}/avatar.jpg`) when Cloudinary fails,
+so enable Storage in the Firebase console and set `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`.
+
 ---
 
 ## Session alarms (backend cron)

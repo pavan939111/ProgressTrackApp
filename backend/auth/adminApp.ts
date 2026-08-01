@@ -42,7 +42,21 @@ export function ensureFirebaseAdmin(): boolean {
         ready = false;
         return false;
       }
-      initializeApp({ credential: cert(cred as any) });
+      const projectId =
+        (cred as { project_id?: string; projectId?: string }).project_id ||
+        (cred as { projectId?: string }).projectId ||
+        process.env.FIREBASE_PROJECT_ID ||
+        process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+        '';
+      const storageBucket =
+        process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+        process.env.FIREBASE_STORAGE_BUCKET ||
+        (projectId ? `${projectId}.firebasestorage.app` : undefined);
+      initializeApp({
+        credential: cert(cred as any),
+        projectId: projectId || undefined,
+        storageBucket,
+      });
     }
     ready = true;
     return true;
