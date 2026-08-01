@@ -113,29 +113,38 @@ export async function requestNotificationPermission(): Promise<{
     };
   }
 
-  // iOS only delivers web push/notifications reliably when installed to Home Screen
-  if (isIosDevice() && !isStandalonePwa()) {
-    return {
-      granted: false,
-      permission: 'default',
-      message: 'On iPhone/iPad: tap Share → Add to Home Screen, open PTA from the icon, then enable notifications.',
-    };
-  }
+  // iOS Safari (not installed): still attempt requestPermission — some versions show a prompt;
+  // delivery only works reliably from Home Screen PWA.
+  const iosBrowserOnly = isIosDevice() && !isStandalonePwa();
 
   try {
     const result = await Notification.requestPermission();
     const permission = result as NotificationPermissionState;
     if (result === 'granted') {
-      return { granted: true, permission, message: 'Notification permission granted.' };
+      return {
+        granted: true,
+        permission,
+        message: iosBrowserOnly
+          ? 'Permission granted. For reliable alarms on iPhone, also Add to Home Screen and open PTA from the icon.'
+          : 'Notification permission granted.',
+      };
     }
     if (result === 'denied') {
       return {
         granted: false,
         permission,
-        message: 'Permission denied. Enable Notifications in system/browser settings for PTA.',
+        message: iosBrowserOnly
+          ? 'On iPhone: Share → Add to Home Screen, open PTA from the icon, then Allow notifications.'
+          : 'Permission denied. Enable Notifications in system/browser settings for PTA.',
       };
     }
-    return { granted: false, permission, message: 'Permission not granted yet.' };
+    return {
+      granted: false,
+      permission,
+      message: iosBrowserOnly
+        ? 'On iPhone/iPad: tap Share → Add to Home Screen, open PTA from the icon, then enable notifications.'
+        : 'Permission not granted yet.',
+    };
   } catch (e: any) {
     return {
       granted: false,

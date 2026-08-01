@@ -25,6 +25,8 @@ import { useApp } from '@/context/AppContext';
 import { applyDocumentTheme } from '@/components/ThemeSync';
 import { SyncStatusBar } from '@/components/SyncStatusBar';
 import { InstallAppBanner } from '@/components/InstallAppBanner';
+import { AlarmPermissionBanner } from '@/components/AlarmPermissionBanner';
+import { AlarmPermissionModal } from '@/components/AlarmPermissionModal';
 
 export type AppTab =
   | 'dashboard'
@@ -87,8 +89,9 @@ function ThemeCycleButton({ className = '' }: { className?: string }) {
 }
 
 export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: Props) {
-  const { user } = useApp();
+  const { user, enableNotifications } = useApp();
   const mainRef = React.useRef<HTMLElement | null>(null);
+  const [alarmHint, setAlarmHint] = React.useState<string | null>(null);
 
   const handleNav = (id: AppTab) => {
     setActiveTab(id);
@@ -96,6 +99,13 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
       mainRef.current?.scrollTo({ top: 0 });
       window.scrollTo(0, 0);
     });
+  };
+
+  const onBell = async () => {
+    const res = await enableNotifications();
+    setAlarmHint(res.message);
+    window.setTimeout(() => setAlarmHint(null), 4000);
+    if (!res.ok) handleNav('settings');
   };
 
   return (
@@ -184,6 +194,14 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
             </div>
             <div className="flex items-center gap-2">
               <SyncStatusBar />
+              <button
+                type="button"
+                onClick={() => void onBell()}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-primary bg-primary/10 border border-primary/30"
+                aria-label="Allow alarms"
+              >
+                <Bell className="w-5 h-5" />
+              </button>
               <span className="bg-muted text-accent px-3 py-1 rounded-full text-sm font-mono font-bold">
                 {user.totalXP} XP
               </span>
@@ -209,9 +227,10 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
             </span>
             <button
               type="button"
-              className="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-card border border-transparent hover:border-border transition-all"
-              aria-label="Open profile"
-              onClick={() => handleNav('settings')}
+              className="w-10 h-10 rounded-full flex items-center justify-center text-primary bg-primary/10 border border-primary/30 hover:bg-primary/20 transition-all"
+              aria-label="Allow alarms"
+              title="Allow session alarms"
+              onClick={() => void onBell()}
             >
               <Bell className="w-5 h-5" />
             </button>
@@ -229,10 +248,16 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
             }`}
           >
             {activeTab === 'dashboard' && <InstallAppBanner />}
+            <AlarmPermissionBanner />
+            {alarmHint && (
+              <p className="mb-3 text-xs font-semibold text-secondary">{alarmHint}</p>
+            )}
             {children}
           </div>
         </main>
       </div>
+
+      <AlarmPermissionModal />
 
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-card border-t border-border rounded-t-2xl shadow-[0_-4px_16px_-4px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom)]">
         <div className="flex justify-around items-center px-1 pt-2 pb-2 max-w-lg mx-auto">
