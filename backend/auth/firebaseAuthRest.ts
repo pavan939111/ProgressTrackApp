@@ -202,28 +202,29 @@ export async function signInWithGoogleViaAdmin(params: {
   const key = apiKey();
   if (!key) throw new Error('Firebase Auth is not configured on the server');
 
-  const { getFirebaseAdmin } = await import('./adminApp');
-  const admin = await getFirebaseAdmin();
-  if (!admin) {
+  const { ensureFirebaseAdmin } = await import('./adminApp');
+  const { getAuth } = await import('firebase-admin/auth');
+  if (!ensureFirebaseAdmin()) {
     throw new Error(
       'Google OAuth client is not linked to this Firebase project. Add GOOGLE_CLIENT_ID under Firebase Authentication → Google → Web SDK configuration, or set FIREBASE_SERVICE_ACCOUNT_JSON so login can use Admin custom tokens.'
     );
   }
 
+  const auth = getAuth();
   const profile = await fetchGoogleProfile(params);
   const email = profile.email;
   const displayName = profile.name || email.split('@')[0] || 'Google User';
 
   let uid: string;
   try {
-    const existing = await admin.auth().getUserByEmail(email);
+    const existing = await auth.getUserByEmail(email);
     uid = existing.uid;
     if (displayName && existing.displayName !== displayName) {
-      await admin.auth().updateUser(uid, { displayName }).catch(() => undefined);
+      await auth.updateUser(uid, { displayName }).catch(() => undefined);
     }
   } catch (e: any) {
     if (e?.code !== 'auth/user-not-found') throw e;
-    const created = await admin.auth().createUser({
+    const created = await auth.createUser({
       email,
       emailVerified: profile.email_verified === true || profile.email_verified === 'true',
       displayName,
@@ -234,7 +235,7 @@ export async function signInWithGoogleViaAdmin(params: {
 
   // Skip provider linking — createCustomToken is enough for a valid session.
 
-  const customToken = await admin.auth().createCustomToken(uid, {
+  const customToken = await auth.createCustomToken(uid, {
     provider: 'google.com',
     email,
   });
