@@ -54,6 +54,8 @@ next-env.d.ts
 # local IDE / agent machine configs (contain absolute user paths)
 .agents/mcp_config.json
 **/.agents/mcp_config.json
+.cursor/mcp.json
+**/.cursor/mcp.json
 
 # archives / transfer packs (do not publish)
 *.zip
