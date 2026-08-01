@@ -1,0 +1,32 @@
+---
+description: Impeccable UI craft — composition, brand, motion; never invents design PASS
+alwaysApply: true
+---
+
+# Impeccable
+
+UI craft for production surfaces. Not a gate. Do not claim “design PASS.”
+
+## Hard rules
+
+- One composition: first viewport reads as one piece, not a dashboard (unless the product is a dashboard).
+- Brand first: brand/product name is hero-level, not only nav text.
+- Brand test: if removing the nav makes the first viewport look like any other site, branding is too weak.
+- Typography: expressive fonts; avoid Inter/Roboto/Arial/system as the display voice.
+- Background: avoid flat single-color only — use gradient, image, or subtle pattern for atmosphere.
+- Full-bleed hero on landing/promo: edge-to-edge visual plane; no inset hero cards or collages unless the design system requires it.
+- Hero budget: brand, one headline, one short sentence, one CTA group, one dominant image. No stats/schedules/promo clutter in the first viewport.
+- No hero overlays: no floating badges/chips on hero media.
+- Cards: default none; never in the hero; only when they contain a user interaction.
+- One job per section.
+- Real visual anchor: product/place/atmosphere — not abstract gradient as the only idea.
+- Reduce clutter: no pill clusters, stat strips, icon rows as decoration.
+- Motion: at least 2–3 intentional motions for visually led work; presence not noise.
+- Avoid AI-default looks: purple-on-white, cream+terracotta serif cliché, broadsheet hairline newspapers, dark-mode+glow+pill overload.
+- Load properly on desktop and mobile.
+
+## With constellation
+
+- Structure/routes → System Gate + `06-frontend-development`
+- Code size → Ponytail
+- Ship → Sentinel (Impeccable never clears security)

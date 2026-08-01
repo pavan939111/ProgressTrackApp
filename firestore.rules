@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isOwner(userId) {
+      return request.auth == null || request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return request.auth == null || request.auth.uid == resource.data.uid;
+    }
+
+    function isWriteOwner() {
+      return request.auth == null || request.auth.uid == request.resource.data.uid;
+    }
+
+    // 1. Users collection
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // 2. Settings collection
+    match /userSettings/{settingsId} {
+      allow read, write: if true;
+    }
+
+    // 3. Weekly Goals collection
+    match /weeklyGoals/{goalId} {
+      allow read, write: if true;
+    }
+
+    // 4. Daily Plans collection
+    match /dailyPlans/{planId} {
+      allow read, write: if true;
+    }
+
+    // 5. Sessions collection
+    match /sessions/{sessionId} {
+      allow read, write: if true;
+    }
+
+    // 6. Tasks collection
+    match /tasks/{taskId} {
+      allow read, write: if true;
+    }
+
+    // 7. Progress Logs collection
+    match /progressLogs/{logId} {
+      allow read, write: if true;
+    }
+
+    // 8. Daily Reports collection
+    match /dailyReports/{reportId} {
+      allow read, write: if true;
+    }
+
+    // 9. Weekly Reports collection
+    match /weeklyReports/{reportId} {
+      allow read, write: if true;
+    }
+
+    // 10. Achievements collection
+    match /achievements/{achievementId} {
+      allow read, write: if true;
+    }
+
+    // 11. XP History collection
+    match /xpHistory/{xpLogId} {
+      allow read, write: if true;
+    }
+  }
+}

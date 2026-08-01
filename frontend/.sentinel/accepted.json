@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "debt": [
+    {
+      "fingerprint": "b18898fafeb72262200454c469276e568ab4bbcc771fd29d5637f2ad0ea15e5d",
+      "reason": "Public Firebase Web API Key"
+    },
+    {
+      "fingerprint": "7fd9d78a70d1033056d24de2a60f9d5786c590a8757d47ccac2c64f1b4fb3647",
+      "reason": "Public Firebase Web API Key in frontend/.env"
+    },
+    {
+      "fingerprint": "be8cea906f0d1aba0292cfcbec9bdfbfe4a5a8f47fc3ddc8fe91c9f0d16a088c",
+      "reason": "Local developer Cloudinary credentials"
+    },
+    {
+      "fingerprint": "8b1bc4c018301525410033158aed8c7781d0823a3c5eb8a216d30297c40bee05",
+      "reason": "Firestore rules configured in root database directory"
+    },
+    {
+      "fingerprint": "804c120aadefcc19e2411fbab12319e5378595e9361f67cbb3227cf3c57b6208",
+      "reason": "Public Firebase Client Web API Key"
+    },
+    {
+      "fingerprint": "03317c7abad47ad68ecd05b540ab3d8bdc73cf63700635b12a8121d86659cf63",
+      "reason": "Public Firebase Client Auth Domain"
+    },
+    {
+      "fingerprint": "15aed525dcc765768043506995ba9c8765d6ea318354c302ab4a78df5a24f2f3",
+      "reason": "Public Firebase Client Project ID"
+    },
+    {
+      "fingerprint": "1d3936ffc13fc6050a4152bd715352cc870887a8ad402270f51f68cea1283553",
+      "reason": "Public Firebase Client Storage Bucket"
+    },
+    {
+      "fingerprint": "1eebb95c4e17fcb9e2e5cadcae0abdadaf15ab0c381d82e2f5499721ae0f9d3d",
+      "reason": "Public Firebase Client Messaging Sender ID"
+    },
+    {
+      "fingerprint": "0dedd8e9e0fe94c8926f7c92ad2403081136e49a222c5a295bd24bc356c898cd",
+      "reason": "Public Firebase Client App ID"
+    },
+    {
+      "fingerprint": "4f07e10df70ec4f1ed9be967d4fd42d1853e89bdc05ce4a5c0a7ad02ea81a5b4",
+      "reason": "Public Firebase Client Measurement ID"
+    },
+    {
+      "fingerprint": "4e1e591dccba94270b35224fab0af0dce9383eb1e5239c5cbe79fdb472cb8ba3",
+      "reason": "Public Firebase Client Web API Key in frontend/.env"
+    },
+    {
+      "fingerprint": "5fddadc131cb9dae23136a2a2d370a05beb2cf945c789fe856f3a160978c8294",
+      "reason": "Public Firebase Auth Domain in frontend/.env"
+    },
+    {
+      "fingerprint": "ce9d5304059ad766a7ab45f114af23d222aa9e8098154ed181c52ec58609b975",
+      "reason": "Public Firebase Project ID in frontend/.env"
+    },
+    {
+      "fingerprint": "719e3e12859462366e1560b6b77491f5511d628f6d7c30088a0854237a18632f",
+      "reason": "Public Firebase Storage Bucket in frontend/.env"
+    },
+    {
+      "fingerprint": "807ca2465c504f1f429f27e06c2f8b62ddd353ccaf7c6e298f90eb6623528b00",
+      "reason": "Public Firebase Messaging Sender ID in frontend/.env"
+    },
+    {
+      "fingerprint": "1996c8eae4ff03805766dee3768f5d3f69182cddbbe067c95fc6b5e42dca62d4",
+      "reason": "Public Firebase App ID in frontend/.env"
+    },
+    {
+      "fingerprint": "e4a92c7cb02c0cde36507a922883f8db1cd2a09bfd2561c96c60c3310c1c6038",
+      "reason": "Public Firebase Measurement ID in frontend/.env"
+    }
+  ]
+}

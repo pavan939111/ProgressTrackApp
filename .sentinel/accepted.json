@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "debt": [
+    {
+      "fingerprint": "5bdfcfac6f1fb3ab563e7f576af7ffa1edc415042d4aa6c653f73a0dea5beec2",
+      "reason": "Public Firebase Client Web API Key in backend config"
+    },
+    {
+      "fingerprint": "471489e1881fbf42ea07f2b545654152f67d5bd3869f9685a7b54e2ba6357a79",
+      "reason": "Public Firebase Client Web API Key in backend config"
+    },
+    {
+      "fingerprint": "7ac71f4ec6372d522410a4fb3ec833e4711121bd671431ab9b84c1aadf7fbc5e",
+      "reason": "Public Firebase Client Web API Key in backend config"
+    },
+    {
+      "fingerprint": "41f2ea9c220c0f08fcc8cefe6c0b7d137d6717b7a87c5ffd1d75bda7db744859",
+      "reason": "Public Firebase Client Web API Key in backend config"
+    },
+    {
+      "fingerprint": "7af05211cdcbf70fde67b0a148973b686f450573fee236c14138b2807a9c616b",
+      "reason": "Public Firebase Client Web API Key in backend config"
+    },
+    {
+      "fingerprint": "f88726bf31e7bfe091fed6713a149df1eb1657ae48ce0ba2e7c259090aaf9324",
+      "reason": "Public Firebase Client Web API Key in backend config"
+    },
+    {
+      "fingerprint": "307760b839d19c1567d6dcfa0869debc8067c6aa42efa431b229766c4f1dda23",
+      "reason": "Public Firebase Client Web API Key in backend config"
+    },
+    {
+      "fingerprint": "2a753b5c35994c5e8e2be259beb5408345fbc596737083dbeefeb1d5083cd06f",
+      "reason": "Public Firebase Client Web API Key in backend config"
+    },
+    {
+      "fingerprint": "3c1ce35d8ce7c6b93cefb8f61a6967e24e9a6cafffeb6ddd0d59a80620e3d4c0",
+      "reason": "Public Firebase Client Web API Key"
+    },
+    {
+      "fingerprint": "b18898fafeb72262200454c469276e568ab4bbcc771fd29d5637f2ad0ea15e5d",
+      "reason": "Public Firebase Client Web API Key in .env.local"
+    },
+    {
+      "fingerprint": "7fd9d78a70d1033056d24de2a60f9d5786c590a8757d47ccac2c64f1b4fb3647",
+      "reason": "Public Firebase Client Web API Key in .env"
+    },
+    {
+      "fingerprint": "be8cea906f0d1aba0292cfcbec9bdfbfe4a5a8f47fc3ddc8fe91c9f0d16a088c",
+      "reason": "Local developer configuration in .env.local"
+    },
+    {
+      "fingerprint": "aa799bbee26c658829c234c535047b4f14375620d48c56870afee556e77eb191",
+      "reason": "Local developer configuration in .env"
+    },
+    {
+      "fingerprint": "65f59851618b183a885740d59b35c60d78d0687425cba35f01bb1d3caf343878",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "864010b8b58a78908a73eb34c49cf6aed593eefdc329ab7cfae3c0a61c03f67c",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "0116d387116582151205d8020ca7c173266f29ee0a201b04119affc3b108b91c",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "761a2a68572c6f1c348f0bd22167debf1f822008832b4952a36e93907b1b1547",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "c6a612c14bcb87a49e794c5424d9cf7f984250b58f1fe731fbd2e931bd842832",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "873094a960c1560cdcd3101e63128927ca75d627d4be06475ee19c7a4772faaf",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "a742cc0341e5b1c18c41db6083d09d38400fb59910fad083e136fabf60f34192",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "032f1764cd3882c48a61d6a5bb1c0d50fc85f48610c855569f53a67bdd281cdc",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "d68e5eb7edd2695403135910018ee3268071f2827cb8d5c133b3f119b988d46a",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "e8e75e1a0525b33a821a8c5e67ddfee28d7123a6c0d2f8f48589377bdbc4d364",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "1dba225fb48432767181a34f51f4e1998ba478feadb1fcffc740c86720a0f978",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "f29c6dd407872ac27cc3a3a79e47815128967a01732222b13a5164a8e5c5cb5c",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "a15c187c741ff7011d89ce49a7ae46075d2d9f3879249a9e72d25d96ebc234cd",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "555ad6c5cca4732c88de6837940ea712213d99d448ceea84e3cc84f656504369",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "9629bdffd2021c43ab2ab7dbc283dad89b6d9bd42e27df321ebdb3ae9ae1246f",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "f32946f82b96392184ce59c70fbd442161573cda9012cee66ac43253addffeae",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "f33d1e03b51af0c738c75e8b0c5034071502ac0cb829df7b77a728ce3526f28a",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "0f4d4e7171561cba91a54b2a17a7fa607ddb70d1a30ff2682ea7a9d2787ab43f",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "e9db7f2ad419b1ff918dc2e7ae53157dcc89725936ce3e778fc2f2e6078efab6",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "540bcefdc7927a31fad84b0ef61ea09c410eda88221dafad88a3d70a9797f86e",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "7721d6e084e398c6a0f01b627038fb3c89371be4cc3f68d7223c4b4d3f0b1adf",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "870da219338956a7fdc09e8b083d07d8f3c92755136545ae70dc5668ac0b6b95",
+      "reason": "Standard production package dependency"
+    },
+    {
+      "fingerprint": "dbf0b0a6783b96f1105c31d935e1f3d549cb823fb2b4d2e196a8ed57faa34a6d",
+      "reason": "Standard production package dependency"
+    }
+  ]
+}
