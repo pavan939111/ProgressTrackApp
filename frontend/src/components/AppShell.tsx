@@ -222,7 +222,13 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
           ref={mainRef}
           className="flex-1 overflow-y-auto px-4 md:px-8 pb-28 lg:pb-12 pt-4 scroll-smooth"
         >
-          <div className="w-full max-w-3xl mx-auto lg:max-w-2xl">{children}</div>
+          <div
+            className={`w-full mx-auto ${
+              activeTab === 'planner' ? 'max-w-6xl' : 'max-w-3xl lg:max-w-2xl'
+            }`}
+          >
+            {children}
+          </div>
         </main>
       </div>
 

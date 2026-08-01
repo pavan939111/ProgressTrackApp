@@ -52,7 +52,13 @@ interface AppContextType {
   saveTomorrowPlan: (input: {
     goal: string;
     notes?: string;
-    tasks: { title: string; session: SessionName; priority: Priority; weeklyGoalId?: string }[];
+    tasks: {
+      title: string;
+      description?: string;
+      session: SessionName;
+      priority: Priority;
+      weeklyGoalId?: string;
+    }[];
     asDraft?: boolean;
   }) => void;
   deleteTomorrowPlan: () => void;

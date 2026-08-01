@@ -377,12 +377,29 @@ export const ptaStore = {
     );
   },
 
+  tomorrowDate() {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  },
+
+  getTomorrowBundle(uid: string) {
+    const date = this.tomorrowDate();
+    return this.getDayDetail(uid, date);
+  },
+
   saveTomorrowPlan(
     uid: string,
     input: {
       goal: string;
       notes?: string;
-      tasks: { title: string; session: SessionName | string; priority: Priority; weeklyGoalId?: string }[];
+      tasks: {
+        title: string;
+        description?: string;
+        session: SessionName | string;
+        priority: Priority;
+        weeklyGoalId?: string;
+      }[];
       asDraft?: boolean;
     }
   ) {
@@ -423,6 +440,7 @@ export const ptaStore = {
         session: session.name as SessionName,
         weeklyGoalId: t.weeklyGoalId,
         title: t.title,
+        description: t.description?.trim() || undefined,
         priority: t.priority,
         status: 'Pending' as TaskStatus,
         createdAt: now,
