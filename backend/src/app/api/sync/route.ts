@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/** Hydrate profile/settings/goals for the authenticated user. */
+/** Hydrate profile/settings/goals/plans/sessions/tasks for the authenticated user. */
 export async function GET(req: NextRequest) {
   const user = await requireUser(req);
   if (!user) return apiError('Unauthorized', 'AUTH_401', 401);
@@ -57,19 +57,39 @@ export async function GET(req: NextRequest) {
   try {
     const db = getAdminFirestore();
     if (!db) {
-      return apiSuccess({ profile: null, settings: null, goals: [] }, 'No Firestore');
+      return apiSuccess(
+        {
+          profile: null,
+          settings: null,
+          goals: [],
+          plans: [],
+          sessions: [],
+          tasks: [],
+          achievements: [],
+        },
+        'No Firestore'
+      );
     }
 
-    const [profileSnap, settingsSnap, goalsSnap] = await Promise.all([
-      db.collection('users').doc(user.uid).get(),
-      db.collection('userSettings').doc(user.uid).get(),
-      db.collection('weeklyGoals').where('uid', '==', user.uid).get(),
-    ]);
+    const [profileSnap, settingsSnap, goalsSnap, plansSnap, sessionsSnap, tasksSnap, achievementsSnap] =
+      await Promise.all([
+        db.collection('users').doc(user.uid).get(),
+        db.collection('userSettings').doc(user.uid).get(),
+        db.collection('weeklyGoals').where('uid', '==', user.uid).get(),
+        db.collection('dailyPlans').where('uid', '==', user.uid).get(),
+        db.collection('sessions').where('uid', '==', user.uid).get(),
+        db.collection('tasks').where('uid', '==', user.uid).get(),
+        db.collection('achievements').where('uid', '==', user.uid).get(),
+      ]);
 
     return apiSuccess({
       profile: profileSnap.exists ? profileSnap.data() : null,
       settings: settingsSnap.exists ? settingsSnap.data() : null,
       goals: goalsSnap.docs.map((d) => d.data()),
+      plans: plansSnap.docs.map((d) => d.data()),
+      sessions: sessionsSnap.docs.map((d) => d.data()),
+      tasks: tasksSnap.docs.map((d) => d.data()),
+      achievements: achievementsSnap.docs.map((d) => d.data()),
     });
   } catch (e: any) {
     return apiError(e.message || 'Hydrate failed', 'SYNC_500', 500);

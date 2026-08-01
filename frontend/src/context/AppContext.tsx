@@ -163,6 +163,39 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (!authUser) return;
+
+    const getUpdateNag = () => {
+      const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+      const windows: { name: string; start: string; end: string }[] = [
+        { name: 'Morning', start: settings.morningReminder || '08:00', end: '11:59' },
+        { name: 'Before Lunch', start: settings.beforeLunchReminder || '12:00', end: '13:59' },
+        { name: 'Afternoon', start: settings.afternoonReminder || '14:00', end: '16:59' },
+        { name: 'Evening', start: settings.eveningReminder || '17:00', end: '19:59' },
+        { name: 'Night', start: settings.nightReminder || '20:00', end: '22:59' },
+      ];
+      const toMins = (hhmm: string) => {
+        const [h, m] = hhmm.split(':').map(Number);
+        return (h || 0) * 60 + (m || 0);
+      };
+      const current =
+        windows.find((w) => nowMins >= toMins(w.start) && nowMins <= toMins(w.end)) ||
+        sessions.find((s) => s.status === 'Active') ||
+        null;
+      if (!current) return null;
+      const name = 'name' in current ? current.name : (current as { name: string }).name;
+      const ses = sessions.find((s) => s.name === name);
+      if (!ses) return null;
+      const pending = tasks.filter(
+        (t) =>
+          t.sessionId === ses.sessionId && (t.status === 'Pending' || t.status === 'In Progress')
+      ).length;
+      return {
+        sessionName: String(name),
+        pendingCount: pending,
+        sessionCompleted: ses.status === 'Completed',
+      };
+    };
+
     scheduleReminders(
       settings,
       (payload) => {
@@ -174,10 +207,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
           window.dispatchEvent(new CustomEvent('pta-navigate', { detail: { tab: 'planner' } }));
         }
       },
-      { lastActiveDate: user.lastActiveDate }
+      { lastActiveDate: user.lastActiveDate, getUpdateNag }
     );
     return () => scheduleReminders({ ...settings, notificationsEnabled: false });
-  }, [settings, authUser, sessions, user.lastActiveDate]);
+  }, [settings, authUser, sessions, tasks, user.lastActiveDate]);
 
   // Deep-link from notification click / URL ?action=
   useEffect(() => {
@@ -295,9 +328,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       refresh();
     },
     deleteTomorrowPlan: () => {
-      const d = new Date();
-      d.setDate(d.getDate() + 1);
-      ptaStore.deletePlan(uid, d.toISOString().split('T')[0]);
+      ptaStore.deletePlan(uid, ptaStore.tomorrowDate());
       refresh();
     },
     completeTask: (taskId, notes, blockers, confidence) => {

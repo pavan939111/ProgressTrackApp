@@ -3,6 +3,15 @@ import { UserSettings } from '@/types';
 type ReminderHandle = ReturnType<typeof setTimeout>;
 
 const handles: ReminderHandle[] = [];
+let nagInterval: ReturnType<typeof setInterval> | null = null;
+
+const NAG_MS = 5 * 60 * 1000;
+
+export type UpdateNagContext = {
+  sessionName: string;
+  pendingCount: number;
+  sessionCompleted: boolean;
+};
 
 export type ReminderAction = 'checkin' | 'planner' | 'weekly' | 'inactivity';
 
@@ -202,6 +211,48 @@ export function clearReminders() {
     const h = handles.pop();
     if (h) clearTimeout(h);
   }
+  clearUpdateNags();
+}
+
+export function clearUpdateNags() {
+  if (nagInterval) {
+    clearInterval(nagInterval);
+    nagInterval = null;
+  }
+}
+
+/**
+ * Every 5 minutes, remind the user to update task progress for the current
+ * session until pending tasks are done or the session is marked complete.
+ */
+export function scheduleUpdateNags(
+  settings: UserSettings,
+  getContext: () => UpdateNagContext | null,
+  onFire?: (payload: ReminderFirePayload) => void
+) {
+  clearUpdateNags();
+  if (!settings.notificationsEnabled) return;
+  if (typeof window !== 'undefined' && notificationsSupported() && Notification.permission !== 'granted') {
+    return;
+  }
+
+  const tick = () => {
+    const ctx = getContext();
+    if (!ctx || ctx.sessionCompleted || ctx.pendingCount <= 0) return;
+    void sendReminder(
+      'PTA — update your progress',
+      `${ctx.sessionName}: ${ctx.pendingCount} open task(s). What have you done? Tap to check in.`,
+      'checkin',
+      ctx.sessionName
+    );
+    onFire?.({
+      label: `${ctx.sessionName} update nag`,
+      action: 'checkin',
+      sessionHint: ctx.sessionName,
+    });
+  };
+
+  nagInterval = setInterval(tick, NAG_MS);
 }
 
 export function getNextReminder(
@@ -236,7 +287,10 @@ export function getNextReminder(
 export function scheduleReminders(
   settings: UserSettings,
   onFire?: (payload: ReminderFirePayload) => void,
-  opts?: { lastActiveDate?: string }
+  opts?: {
+    lastActiveDate?: string;
+    getUpdateNag?: () => UpdateNagContext | null;
+  }
 ) {
   clearReminders();
   if (!settings.notificationsEnabled) return;
@@ -280,8 +334,11 @@ export function scheduleReminders(
   }
 
   if (opts?.lastActiveDate) {
-    const today = new Date().toISOString().split('T')[0];
-    if (opts.lastActiveDate < today) {
+    const now = new Date();
+    const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+      now.getDate()
+    ).padStart(2, '0')}`;
+    if (opts.lastActiveDate < localToday) {
       const delay = msUntil('10:00');
       const handle = setTimeout(() => {
         void sendReminder('PTA Misses You', 'You have pending plans — open PTA and check in.', 'inactivity');
@@ -289,5 +346,9 @@ export function scheduleReminders(
       }, Math.min(delay, 2147483647));
       handles.push(handle);
     }
+  }
+
+  if (opts?.getUpdateNag) {
+    scheduleUpdateNags(settings, opts.getUpdateNag, onFire);
   }
 }

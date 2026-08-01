@@ -79,12 +79,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let cancelled = false;
+    // Never wipe a valid session just because boot is slow — only stop the spinner.
     const bootTimeout = window.setTimeout(() => {
-      if (!cancelled) {
-        saveSession(null);
-        setLoading(false);
-      }
-    }, 8000);
+      if (!cancelled) setLoading(false);
+    }, 12000);
 
     (async () => {
       try {
@@ -120,6 +118,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
+        // Optimistic restore so slow /me does not flash login
+        if (!cancelled) {
+          setIsDemo(false);
+          setUser(
+            defaultProfile({
+              uid: session.uid,
+              email: session.email,
+              fullName: session.fullName,
+            })
+          );
+        }
+
         if (session.expiresAt < Date.now() && session.refreshToken) {
           const refreshed = await backendRefresh(session.refreshToken);
           if (refreshed.success && refreshed.data) {
@@ -131,7 +141,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             });
           } else {
             saveSession(null);
-            if (!cancelled) setLoading(false);
+            if (!cancelled) {
+              setUser(null);
+              setLoading(false);
+            }
             return;
           }
         }
@@ -151,11 +164,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(profile);
             void ptaStore.hydrateFromBackend();
           }
-        } else {
+        } else if (me.errorCode === 'AUTH_401' || /unauthor/i.test(String(me.message || ''))) {
           saveSession(null);
+          if (!cancelled) setUser(null);
         }
+        // Network / 5xx: keep optimistic session
       } catch {
-        saveSession(null);
+        // Keep cached session on transient boot errors
       } finally {
         window.clearTimeout(bootTimeout);
         if (!cancelled) setLoading(false);

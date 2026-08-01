@@ -127,7 +127,15 @@ export async function backendSync(items: { collection: string; docId: string; da
 }
 
 export async function backendHydrate() {
-  return api<{ profile: any; settings: any; goals: any[] }>('/api/sync');
+  return api<{
+    profile: any;
+    settings: any;
+    goals: any[];
+    plans?: any[];
+    sessions?: any[];
+    tasks?: any[];
+    achievements?: any[];
+  }>('/api/sync');
 }
 
 export async function fetchMessagingConfig() {

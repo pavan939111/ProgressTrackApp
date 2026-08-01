@@ -353,8 +353,9 @@ export function ProfilePage() {
               </div>
               {notifMsg && <p className="text-xs text-secondary font-semibold">{notifMsg}</p>}
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                There is no separate “alarm permission” on the web. PTA uses Notifications for session reminders. Keep
-                reminder times below enabled, and leave Notifications allowed in phone settings.
+                There is no separate “alarm permission” on the web. PTA uses Notifications: session start alerts, plus a
+                repeating reminder every <strong>5 minutes</strong> during the current session until you update or
+                complete your open tasks. Keep Notifications allowed in phone settings.
               </p>
             </div>
 

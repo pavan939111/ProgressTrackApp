@@ -35,7 +35,20 @@ function id(prefix: string) {
 }
 
 function today() {
-  return new Date().toISOString().split('T')[0];
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function localDateOffset(days: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function weekBounds(d = new Date()) {
@@ -378,9 +391,7 @@ export const ptaStore = {
   },
 
   tomorrowDate() {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
+    return localDateOffset(1);
   },
 
   getTomorrowBundle(uid: string) {
@@ -538,6 +549,7 @@ export const ptaStore = {
       };
     });
     setLocal(key(uid, 'sessions'), [...other, ...updatedSessions]);
+    updatedSessions.forEach((s) => void mirrorFirestore('sessions', s.sessionId, s));
 
     this.listGoals(uid)
       .filter((g) => g.status === 'Active')
@@ -617,6 +629,7 @@ export const ptaStore = {
     task.skippedReason = reason;
     task.updatedAt = new Date().toISOString();
     setLocal(key(uid, 'tasks'), tasks);
+    void mirrorFirestore('tasks', task.taskId, task);
     this.recalculatePlan(uid, task.dailyPlanId);
     return task;
   },
@@ -629,6 +642,7 @@ export const ptaStore = {
     task.movedToDate = toDate;
     task.updatedAt = new Date().toISOString();
     setLocal(key(uid, 'tasks'), tasks);
+    void mirrorFirestore('tasks', task.taskId, task);
     this.recalculatePlan(uid, task.dailyPlanId);
 
     let plan = this.getPlanForDate(uid, toDate);
@@ -646,6 +660,7 @@ export const ptaStore = {
       updatedAt: new Date().toISOString(),
     };
     setLocal(key(uid, 'tasks'), [...this.listTasks(uid), clone]);
+    void mirrorFirestore('tasks', clone.taskId, clone);
     this.recalculatePlan(uid, plan.planId);
     return { task, clone };
   },
@@ -666,6 +681,7 @@ export const ptaStore = {
     if (idx < 0) return null;
     tasks[idx] = { ...tasks[idx], ...updates, updatedAt: new Date().toISOString() };
     setLocal(key(uid, 'tasks'), tasks);
+    void mirrorFirestore('tasks', tasks[idx].taskId, tasks[idx]);
     this.recalculatePlan(uid, tasks[idx].dailyPlanId);
     return tasks[idx];
   },
@@ -685,14 +701,17 @@ export const ptaStore = {
 
     const wasAlreadyComplete = s.status === 'Completed';
     const sessionTasks = this.listTasks(uid).filter((t) => t.sessionId === sessionId);
-    // Empty sessions still earn check-in XP. With tasks, award when all are Completed or Skipped.
+    // Empty sessions still earn check-in XP. With tasks, award when all are resolved (incl. Moved).
     const eligibleForXp =
       sessionTasks.length === 0 ||
-      sessionTasks.every((t) => t.status === 'Completed' || t.status === 'Skipped');
+      sessionTasks.every(
+        (t) => t.status === 'Completed' || t.status === 'Skipped' || t.status === 'Moved'
+      );
 
     s.status = 'Completed';
     s.updatedAt = new Date().toISOString();
     setLocal(key(uid, 'sessions'), sessions);
+    void mirrorFirestore('sessions', s.sessionId, s);
 
     if (meta?.notes || meta?.blockers || meta?.confidence != null) {
       const log: ProgressLog = {
@@ -832,9 +851,7 @@ export const ptaStore = {
   calendarDays(uid: string, days = 30) {
     const out: { date: string; completion: number; completed: boolean; goal: string }[] = [];
     for (let i = days - 1; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const date = d.toISOString().split('T')[0];
+      const date = localDateOffset(-i);
       const plan = this.getPlanForDate(uid, date);
       out.push({
         date,
@@ -868,7 +885,9 @@ export const ptaStore = {
     try {
       const res = await backendHydrate();
       if (!res.success || !res.data) return { hydrated: false };
-      const { profile, settings, goals } = res.data;
+      const { profile, settings, goals, plans, sessions, tasks, achievements } = res.data;
+      const uid = (profile?.uid as string) || '';
+
       if (profile?.uid) {
         const local = this.getProfile(profile.uid);
         const winner = resolveConflict(local, profile as UserProfile);
@@ -879,8 +898,7 @@ export const ptaStore = {
         const winner = resolveConflict(local, settings as UserSettings);
         if (winner) setLocal(key(winner.uid, 'settings'), winner);
       }
-      if (Array.isArray(goals) && goals.length && profile?.uid) {
-        const uid = profile.uid as string;
+      if (uid && Array.isArray(goals) && goals.length) {
         const local = this.listGoals(uid);
         const byId = new Map(local.map((g) => [g.goalId, g]));
         goals.forEach((r: WeeklyGoal) => {
@@ -888,6 +906,41 @@ export const ptaStore = {
           if (winner) byId.set(r.goalId, winner);
         });
         setLocal(key(uid, 'goals'), Array.from(byId.values()));
+      }
+      if (uid && Array.isArray(plans) && plans.length) {
+        const local = this.listPlans(uid);
+        const byId = new Map(local.map((p) => [p.planId, p]));
+        plans.forEach((r: DailyPlan) => {
+          const winner = resolveConflict(byId.get(r.planId), r);
+          if (winner) byId.set(r.planId, winner);
+        });
+        setLocal(key(uid, 'plans'), Array.from(byId.values()));
+      }
+      if (uid && Array.isArray(sessions) && sessions.length) {
+        const local = this.listSessions(uid);
+        const byId = new Map(local.map((s) => [s.sessionId, s]));
+        sessions.forEach((r: Session) => {
+          const winner = resolveConflict(byId.get(r.sessionId), r);
+          if (winner) byId.set(r.sessionId, winner);
+        });
+        setLocal(key(uid, 'sessions'), Array.from(byId.values()));
+      }
+      if (uid && Array.isArray(tasks) && tasks.length) {
+        const local = this.listTasks(uid);
+        const byId = new Map(local.map((t) => [t.taskId, t]));
+        tasks.forEach((r: Task) => {
+          const winner = resolveConflict(byId.get(r.taskId), r);
+          if (winner) byId.set(r.taskId, winner);
+        });
+        setLocal(key(uid, 'tasks'), Array.from(byId.values()));
+      }
+      if (uid && Array.isArray(achievements) && achievements.length) {
+        const local = this.listAchievements(uid);
+        const byId = new Map(local.map((a) => [a.achievementId, a]));
+        achievements.forEach((r: Achievement) => {
+          if (!byId.has(r.achievementId)) byId.set(r.achievementId, r);
+        });
+        setLocal(key(uid, 'achievements'), Array.from(byId.values()));
       }
       return { hydrated: true };
     } catch {
