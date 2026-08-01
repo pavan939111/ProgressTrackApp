@@ -49,8 +49,8 @@ const initialPlan: DailyPlan = {
 
 const defaultUser: UserProfile = {
   uid: 'demo-user-123',
-  email: 'alex.developer@pta.io',
-  fullName: 'Alex Morgan',
+  email: 'demo.user@example.com',
+  fullName: 'Demo User',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   timezone: 'UTC',
@@ -131,6 +131,26 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     fetchAppData();
+    // Seed weekly report for export if empty
+    setWeeklyReports((prev) =>
+      prev.length
+        ? prev
+        : [
+            {
+              reportId: 'wr-current',
+              uid: defaultUser.uid,
+              weekStart: new Date(Date.now() - 6 * 86400000).toISOString().split('T')[0],
+              weekEnd: new Date().toISOString().split('T')[0],
+              completedTasks: 18,
+              pendingTasks: 4,
+              completionPercentage: 82,
+              achievements: ['5-day streak', 'Morning mastery'],
+              weeklyGoalSummary: 'Strong execution on core application milestones.',
+              consistencyScore: 78,
+              generatedAt: new Date().toISOString(),
+            },
+          ]
+    );
   }, []);
 
   const activeSession = sessions.find((s) => s.status === 'Active') || sessions[0] || null;

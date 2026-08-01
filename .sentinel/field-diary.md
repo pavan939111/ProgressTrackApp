@@ -1,10 +1,10 @@
-# Field diary — PTA greenfield (Constellation Vision v1)
+# Field diary — PTA (Constellation Vision v1)
 
 ## Template entry
 
 ```
 ## YYYY-MM-DD — <milestone>
-- scanRoot: C:\Users\mahip\OneDrive\Desktop\PTA
+- scanRoot: <local-app-path>
 - toolsCalled: [...]
 - architecture_readiness: PASS|FAIL|ERROR
 - ship_readiness: PASS|FAIL|ERROR
@@ -18,6 +18,7 @@
 
 ## Install
 
-- Constellation unzipped to Desktop\constellation-v1
-- App root PTA
+- Constellation tooling installed locally (see constellation pack INSTALL guide)
+- App root: this repository
 - Gates: blocking System Gate; Sentinel via MCP/CLI
+- Do not commit machine-specific absolute paths or secrets

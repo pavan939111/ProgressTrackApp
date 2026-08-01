@@ -1,36 +1,72 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Download } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
+import { buildIcsFromSessions, downloadIcs } from '@/lib/calendarExport';
+import { CalendarIntegrationsPanel } from '@/features/integrations/CalendarIntegrationsPanel';
 
 export const CalendarView = () => {
-  const [selectedDate, setSelectedDate] = useState('2026-08-01');
+  const { sessions, tasks, todayPlan } = useApp();
+  const [selectedDate, setSelectedDate] = useState(todayPlan.date);
+  const [showIntegrations, setShowIntegrations] = useState(false);
 
-  const days = [
-    { date: '2026-07-27', day: 'Mon', score: 85, completed: true },
-    { date: '2026-07-28', day: 'Tue', score: 90, completed: true },
-    { date: '2026-07-29', day: 'Wed', score: 100, completed: true },
-    { date: '2026-07-30', day: 'Thu', score: 80, completed: true },
-    { date: '2026-07-31', day: 'Fri', score: 95, completed: true },
-    { date: '2026-08-01', day: 'Sat', score: 65, completed: false, isToday: true },
-    { date: '2026-08-02', day: 'Sun', score: 0, completed: false },
-  ];
+  const days = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (3 - i));
+    const date = d.toISOString().split('T')[0];
+    const isToday = date === todayPlan.date;
+    return {
+      date,
+      day: d.toLocaleDateString('en-US', { weekday: 'short' }),
+      score: isToday ? todayPlan.completionPercentage : 60 + ((i * 11) % 40),
+      completed: !isToday || todayPlan.completionPercentage >= 80,
+      isToday,
+    };
+  });
+
+  const exportToday = () => {
+    const ics = buildIcsFromSessions(sessions, tasks, todayPlan.date, todayPlan.goal);
+    downloadIcs(`pta-${todayPlan.date}.ics`, ics);
+  };
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
             <CalendarIcon className="w-8 h-8 text-cyan-400" />
             Execution History Calendar
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Navigate past daily plans, completion scores, and reflection logs.
+            Navigate past daily plans, completion scores, and calendar sync.
           </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={exportToday}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs font-bold text-cyan-400"
+          >
+            <Download className="w-3.5 h-3.5" /> Export ICS
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowIntegrations((v) => !v)}
+            className="px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-xs font-bold text-white"
+          >
+            {showIntegrations ? 'Hide Sync' : 'Integrations'}
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+      {showIntegrations && (
+        <div className="glass-panel rounded-3xl p-6 border border-white/10 bg-slate-950/80">
+          <CalendarIntegrationsPanel />
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
         {days.map((item) => (
           <div
             key={item.date}

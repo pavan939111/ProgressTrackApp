@@ -164,3 +164,54 @@ export interface Achievement {
   unlockedAt: string;
   iconName?: string;
 }
+
+export type CalendarProvider = 'google' | 'outlook' | 'apple' | 'ics';
+
+export interface CalendarConnection {
+  provider: CalendarProvider;
+  connected: boolean;
+  accountEmail?: string;
+  syncSessions: boolean;
+  syncTasks: boolean;
+  lastSyncedAt?: string;
+}
+
+export interface TeamMember {
+  memberId: string;
+  uid: string;
+  email: string;
+  fullName: string;
+  role: 'owner' | 'admin' | 'member';
+  joinedAt: string;
+}
+
+export interface Team {
+  teamId: string;
+  name: string;
+  inviteCode: string;
+  ownerUid: string;
+  members: TeamMember[];
+  sharedGoalIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SharedWeeklyGoal extends WeeklyGoal {
+  teamId: string;
+  assignedMemberIds: string[];
+}
+
+export interface AnalyticsSnapshot {
+  rangeDays: number;
+  totalTasks: number;
+  completedTasks: number;
+  completionRate: number;
+  avgDailyCompletion: number;
+  consistencyScore: number;
+  bestDay: string;
+  weakestSession: SessionName | null;
+  sessionBreakdown: { session: SessionName; completed: number; total: number }[];
+  dailySeries: { date: string; completion: number; tasksDone: number }[];
+  xpTrend: { date: string; xp: number }[];
+  insights: string[];
+}

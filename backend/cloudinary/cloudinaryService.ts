@@ -1,14 +1,28 @@
 import { v2 as cloudinary } from 'cloudinary';
 
-cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'n4elkdtt',
-  api_key: process.env.CLOUDINARY_API_KEY || '613419157179926',
-  api_secret: process.env.CLOUDINARY_API_SECRET || '5BwgAR5U7INeP54_5JDu1yNAFRk',
-  secure: true,
-});
+const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '';
+const apiKey = process.env.CLOUDINARY_API_KEY || '';
+const apiSecret = process.env.CLOUDINARY_API_SECRET || '';
+
+export const isCloudinaryConfigured = Boolean(cloudName && apiKey && apiSecret);
+
+if (isCloudinaryConfigured) {
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+    secure: true,
+  });
+}
 
 export const cloudinaryService = {
   async uploadImage(fileUrlOrBase64: string, publicId?: string) {
+    if (!isCloudinaryConfigured) {
+      return {
+        success: false,
+        error: 'Cloudinary is not configured. Set CLOUDINARY_* in .env.local.',
+      };
+    }
     try {
       const uploadResult = await cloudinary.uploader.upload(fileUrlOrBase64, {
         public_id: publicId || `pta_${Date.now()}`,
@@ -29,6 +43,7 @@ export const cloudinaryService = {
   },
 
   getOptimizedUrl(publicId: string): string {
+    if (!isCloudinaryConfigured) return '';
     return cloudinary.url(publicId, {
       fetch_format: 'auto',
       quality: 'auto',
@@ -37,6 +52,7 @@ export const cloudinaryService = {
   },
 
   getSquareCropUrl(publicId: string, size = 300): string {
+    if (!isCloudinaryConfigured) return '';
     return cloudinary.url(publicId, {
       crop: 'auto',
       gravity: 'auto',

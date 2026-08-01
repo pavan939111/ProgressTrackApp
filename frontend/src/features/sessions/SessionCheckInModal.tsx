@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { X, CheckCircle2, Star, MessageSquare, AlertCircle } from 'lucide-react';
+import { VoiceInputButton } from '@/features/voice/VoiceInputButton';
 
 export const SessionCheckInModal = () => {
   const { activeCheckInSession, closeCheckIn, tasks, completeTask } = useApp();
@@ -74,10 +75,13 @@ export const SessionCheckInModal = () => {
 
           {/* Notes */}
           <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
-              <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
-              Reflection Notes & Outcomes
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
+                <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
+                Reflection Notes & Outcomes
+              </label>
+              <VoiceInputButton currentValue={notes} onResult={setNotes} />
+            </div>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -89,10 +93,13 @@ export const SessionCheckInModal = () => {
 
           {/* Blockers */}
           <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
-              <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
-              Blockers or Delays
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                Blockers or Delays
+              </label>
+              <VoiceInputButton currentValue={blockers} mode="replace" onResult={setBlockers} />
+            </div>
             <input
               type="text"
               value={blockers}

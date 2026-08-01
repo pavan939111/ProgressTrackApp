@@ -1,38 +1,70 @@
 # dependencies
-/node_modules
-/.pnp
+node_modules/
+**/node_modules/
+.pnp
 .pnp.js
 
 # testing
-/coverage
+coverage/
+**/coverage/
 
 # next.js
-/.next/
-/out/
+.next/
+**/.next/
+out/
+**/out/
 
 # production
-/build
+build/
+**/build/
+dist/
+**/dist/
 
 # misc
 .DS_Store
+Thumbs.db
 *.pem
-
-# debug
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# env & secrets (never commit)
 .env
+.env.*
+!.env.example
+env
+env.*
+env (*)
 *.local
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # vercel
-.vercel
+.vercel/
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python / local tooling
+**/.venv/
+**/__pycache__/
+.mem0/
+**/.mem0/
+
+# local IDE / agent machine configs (contain absolute user paths)
+.agents/mcp_config.json
+**/.agents/mcp_config.json
+
+# archives / transfer packs (do not publish)
+*.zip
+constellation-*.zip
+
+# OS / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# sentinel / gate local runtime (optional local state)
+.sentinel/accepted.json
+backend/.sentinel/

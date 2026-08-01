@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { X, Calendar, Plus, Trash2, Moon, Target } from 'lucide-react';
+import { X, Plus, Trash2, Moon, Target } from 'lucide-react';
 import { Priority, SessionName } from '@/types';
 import { apiClient } from '@/services/api/apiClient';
+import { VoiceInputButton } from '@/features/voice/VoiceInputButton';
 
 export const DailyPlannerModal = () => {
   const { isPlannerOpen, closePlanner, triggerConfetti } = useApp();
@@ -70,10 +71,17 @@ export const DailyPlannerModal = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
-              <Target className="w-4 h-4 text-cyan-400" />
-              Tomorrow&apos;s Core Focus & Goal
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
+                <Target className="w-4 h-4 text-cyan-400" />
+                Tomorrow&apos;s Core Focus & Goal
+              </label>
+              <VoiceInputButton
+                currentValue={goal}
+                onResult={setGoal}
+                mode="replace"
+              />
+            </div>
             <input
               type="text"
               required
@@ -100,7 +108,7 @@ export const DailyPlannerModal = () => {
 
             <div className="space-y-3">
               {tasks.map((t, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-slate-900/60">
+                <div key={idx} className="flex flex-wrap items-center gap-3 p-3 rounded-2xl border border-white/10 bg-slate-900/60">
                   <input
                     type="text"
                     required
@@ -111,7 +119,16 @@ export const DailyPlannerModal = () => {
                       setTasks(updated);
                     }}
                     placeholder="Task title..."
-                    className="flex-1 bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none"
+                    className="flex-1 min-w-[140px] bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none"
+                  />
+                  <VoiceInputButton
+                    currentValue={t.title}
+                    mode="replace"
+                    onResult={(text) => {
+                      const updated = [...tasks];
+                      updated[idx].title = text;
+                      setTasks(updated);
+                    }}
                   />
                   <select
                     value={t.session}

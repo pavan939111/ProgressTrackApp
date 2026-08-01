@@ -2,20 +2,24 @@ const { initializeApp } = require('firebase/app');
 const { getFirestore, doc, setDoc } = require('firebase/firestore');
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDNTXH-Jctx5tnibr0vzlRLPTfRRE_6tGA",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "pta-1-8f439.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "pta-1-8f439",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "pta-1-8f439.firebasestorage.app",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "153283759434",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:153283759434:web:1117477fff0455abd985b3",
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-2S599PLB54",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || '',
 };
+
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  throw new Error('Missing Firebase env. Copy .env.example to .env.local and fill values.');
+}
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 async function seed() {
-  console.log('Seeding live Firestore database (pta-1-8f439)...');
+  console.log('Seeding Firestore database...');
 
   const userId = 'demo-user-123';
   const now = new Date().toISOString();
@@ -24,8 +28,8 @@ async function seed() {
   // 1. users
   await setDoc(doc(db, 'users', userId), {
     uid: userId,
-    email: 'alex.developer@pta.io',
-    fullName: 'Alex Morgan',
+    email: 'demo.user@example.com',
+    fullName: 'Demo User',
     createdAt: now,
     updatedAt: now,
     timezone: 'UTC',
@@ -137,7 +141,7 @@ async function seed() {
       dailyPlanId: `dp-${today}`,
       sessionId: `sess-${today}-1`,
       session: 'Morning',
-      title: 'Integrate Cloudinary Image Transformations (n4elkdtt)',
+      title: 'Integrate Cloudinary Image Transformations',
       description: 'Setup auto-format, quality, and square crop URLs',
       priority: 'High',
       status: 'Completed',

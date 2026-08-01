@@ -1,15 +1,47 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { FileText, CheckCircle2, AlertTriangle, Sparkles, TrendingUp } from 'lucide-react';
+import { FileText, CheckCircle2, Sparkles } from 'lucide-react';
+import { ExportButtons } from '@/features/export/ExportButtons';
+import { WeeklyReportView } from '@/features/reports/WeeklyReportView';
 
 export const DailyReportView = () => {
-  const { todayPlan, user } = useApp();
+  const { todayPlan, user, tasks } = useApp();
+  const [mode, setMode] = useState<'daily' | 'weekly'>('daily');
+
+  const completed = tasks.filter((t) => t.status === 'Completed');
+
+  if (mode === 'weekly') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setMode('daily')}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-900 border-white/10 text-slate-400"
+            >
+              Daily
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('weekly')}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold border bg-cyan-600 border-cyan-500 text-white"
+            >
+              Weekly
+            </button>
+          </div>
+          <ExportButtons variant="weekly" />
+        </div>
+        <WeeklyReportView />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
             <FileText className="w-8 h-8 text-cyan-400" />
@@ -18,6 +50,25 @@ export const DailyReportView = () => {
           <p className="text-sm text-slate-400 mt-1">
             Generated accountability snapshot for {todayPlan.date}
           </p>
+        </div>
+        <div className="flex flex-col items-start md:items-end gap-3">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setMode('daily')}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold border bg-cyan-600 border-cyan-500 text-white"
+            >
+              Daily
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('weekly')}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-900 border-white/10 text-slate-400"
+            >
+              Weekly
+            </button>
+          </div>
+          <ExportButtons variant="daily" />
         </div>
       </div>
 
@@ -49,14 +100,16 @@ export const DailyReportView = () => {
             Key Accomplishments & Wins
           </h2>
           <ul className="mt-3 space-y-2 text-sm text-slate-300">
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              Connected Live Firebase & Firestore Database (pta-1-8f439) with 13 security-bound collections.
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              Integrated Cloudinary image transformation URLs (square crop, quality auto).
-            </li>
+            {completed.length === 0 ? (
+              <li className="text-slate-500 italic text-xs">No completed tasks yet today.</li>
+            ) : (
+              completed.map((t) => (
+                <li key={t.taskId} className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  {t.title}
+                </li>
+              ))
+            )}
           </ul>
         </div>
       </div>

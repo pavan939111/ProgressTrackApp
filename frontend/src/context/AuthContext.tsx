@@ -5,8 +5,8 @@ import { UserProfile } from '@/types';
 
 const defaultProfile: UserProfile = {
   uid: 'demo-user-123',
-  email: 'alex.developer@pta.io',
-  fullName: 'Alex Morgan',
+  email: 'demo.user@example.com',
+  fullName: 'Demo User',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   timezone: 'UTC',

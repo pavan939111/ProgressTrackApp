@@ -1,0 +1,41 @@
+{
+  "mcpServers": {
+    "constellation-router": {
+      "command": "node",
+      "args": ["${CONSTELLATION_ROOT}/constellation-router/dist/mcp.js"],
+      "env": {
+        "CONSTELLATION_APP": "${PTA_APP_ROOT}"
+      }
+    },
+    "sentinel": {
+      "command": "node",
+      "args": ["${CONSTELLATION_ROOT}/sentinel/dist/src/index.js"],
+      "env": {
+        "SENTINEL_ROOT": "${PTA_APP_ROOT}"
+      }
+    },
+    "system-gate": {
+      "command": "node",
+      "args": ["${CONSTELLATION_ROOT}/system-gate/dist/mcp.js"],
+      "env": {
+        "SYSTEM_GATE_ROOT": "${PTA_APP_ROOT}"
+      }
+    },
+    "skills": {
+      "command": "node",
+      "args": ["${CONSTELLATION_ROOT}/skills/tools/mcp-server/dist/src/index.js"]
+    },
+    "ponytail": {
+      "command": "node",
+      "args": ["${CONSTELLATION_ROOT}/ponytail/ponytail-mcp/index.js"]
+    },
+    "mem0-local": {
+      "command": "${PTA_APP_ROOT}/scripts/.venv/Scripts/python.exe",
+      "args": ["${PTA_APP_ROOT}/scripts/local_mem0_mcp.py"],
+      "env": {
+        "CONSTELLATION_APP": "${PTA_APP_ROOT}",
+        "MEM0_USER_ID": "pta-local"
+      }
+    }
+  }
+}

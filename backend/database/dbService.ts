@@ -58,8 +58,8 @@ function setLocal<T>(key: string, value: T): void {
 
 export const initialUser: UserProfile = {
   uid: 'demo-user-123',
-  email: 'alex.developer@pta.io',
-  fullName: 'Alex Morgan',
+  email: 'demo.user@example.com',
+  fullName: 'Demo User',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -360,7 +360,7 @@ export const dbService = {
           sessionId: morningSess.sessionId,
           session: 'Morning',
           weeklyGoalId: 'wg-1',
-          title: 'Integrate Cloudinary Image Transformations (n4elkdtt)',
+          title: 'Integrate Cloudinary Image Transformations',
           description: 'Setup auto-format, quality, and square crop URLs',
           priority: 'High',
           estimatedMinutes: 60,
