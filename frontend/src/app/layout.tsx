@@ -21,6 +21,18 @@ export const metadata: Metadata = {
   title: 'Progress Tracker App — High Focus Execution System',
   description: 'Daily accountability and 5-session execution platform for ambitious engineers',
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'PTA',
+    statusBarStyle: 'default',
+  },
 };
 
 export const viewport: Viewport = {

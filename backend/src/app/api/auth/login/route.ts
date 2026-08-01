@@ -10,33 +10,14 @@ import { toProfile } from '../../../../../auth/sessionAuth';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, password, demo, fullName, mode } = body as {
+    const { email, password, fullName, mode } = body as {
       email?: string;
       password?: string;
-      demo?: boolean;
       fullName?: string;
       mode?: 'login' | 'register';
     };
 
-    if (demo === true) {
-      const now = new Date().toISOString();
-      const user = {
-        uid: 'demo-user-123',
-        email: 'demo.user@example.com',
-        fullName: 'Demo User',
-        createdAt: now,
-        updatedAt: now,
-        timezone: 'UTC',
-        notificationPermission: false,
-        pwaInstalled: false,
-        streak: 0,
-        totalXP: 0,
-        level: 1,
-        lastActiveDate: now.split('T')[0],
-        onboardingCompleted: true,
-      };
-      return apiSuccess({ user, idToken: null, refreshToken: null, mode: 'demo' }, 'Demo login');
-    }
+    // Demo / passwordless bypass removed — all sessions must use Firebase Auth.
 
     if (!firebaseAuthConfigured()) {
       return apiError(

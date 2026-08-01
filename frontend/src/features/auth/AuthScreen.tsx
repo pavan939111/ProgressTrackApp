@@ -206,7 +206,7 @@ export function AuthScreen() {
         </div>
 
         <p className="text-[10px] text-muted-foreground text-center px-2">
-          Auth is handled by the backend. Use Google for the fastest start, or email to sign in / register.
+          Secured with Firebase Authentication via the PTA backend. Continue with Google, or use email.
         </p>
       </div>
     </div>

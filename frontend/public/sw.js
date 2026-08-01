@@ -1,5 +1,11 @@
-const CACHE_NAME = 'pta-cache-v2';
-const ASSETS_TO_CACHE = ['/', '/manifest.json'];
+const CACHE_NAME = 'pta-cache-v3';
+const ASSETS_TO_CACHE = [
+  '/',
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/icons/apple-touch-icon.png',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
