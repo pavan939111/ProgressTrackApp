@@ -233,8 +233,48 @@ async function scheduleOsTrigger(
 export async function sendTestNotification(): Promise<{ ok: boolean; message: string }> {
   const perm = await requestNotificationPermission();
   if (!perm.granted) return { ok: false, message: perm.message };
-  await sendReminder('PTA', 'Reminders are working. You’ll get session alerts at your set times.', 'checkin', 'Morning');
-  return { ok: true, message: 'Test notification sent. Check your notification shade.' };
+  await sendReminder(
+    'PTA Alarm Test',
+    'This is a test session alarm. Tap to open check-in.',
+    'checkin',
+    'Morning'
+  );
+  return { ok: true, message: 'Test alarm sent now — check your notification shade.' };
+}
+
+/** Schedule a real alarm in ~delayMs (default 60s) so you can leave the app and wait. */
+export async function scheduleTestAlarm(
+  delayMs = 60_000
+): Promise<{ ok: boolean; message: string }> {
+  const perm = await requestNotificationPermission();
+  if (!perm.granted) return { ok: false, message: perm.message };
+
+  const fireAt = Date.now() + delayMs;
+  const secs = Math.round(delayMs / 1000);
+  const triggered = await scheduleOsTrigger(
+    'PTA Alarm Test',
+    `Scheduled test alarm (+${secs}s). Tap to check in.`,
+    fireAt,
+    'checkin',
+    'Morning'
+  );
+
+  const handle = setTimeout(() => {
+    void sendReminder(
+      'PTA Alarm Test',
+      `Scheduled test alarm (+${secs}s). Tap to check in.`,
+      'checkin',
+      'Morning'
+    );
+  }, delayMs);
+  handles.push(handle);
+
+  return {
+    ok: true,
+    message: triggered
+      ? `Alarm scheduled in ${secs}s (OS trigger). You can switch apps — wait for the notification.`
+      : `Alarm scheduled in ${secs}s. Keep PTA open or in recent apps; you’ll get a notification.`,
+  };
 }
 
 export function clearReminders() {

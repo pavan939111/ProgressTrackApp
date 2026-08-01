@@ -17,7 +17,7 @@ import {
 } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { defaultSettings, ptaStore } from '@/lib/ptaStore';
-import { requestNotificationPermission, scheduleReminders, getNextReminder, sendTestNotification } from '@/lib/reminders';
+import { requestNotificationPermission, scheduleReminders, getNextReminder, sendTestNotification, scheduleTestAlarm } from '@/lib/reminders';
 import { initWebPush, sendServerPush } from '@/lib/fcmClient';
 import { recordTodaySnapshot } from '@/lib/analytics';
 import { levelFromXp } from '@/lib/gamification';
@@ -75,6 +75,7 @@ interface AppContextType {
   generateWeeklyReport: () => WeeklyReport;
   enableNotifications: () => Promise<{ ok: boolean; message: string }>;
   sendTestReminder: () => Promise<{ ok: boolean; message: string }>;
+  sendTestAlarmInOneMinute: () => Promise<{ ok: boolean; message: string }>;
   addCustomSession: (def: { name: string; start: string; end: string; reminder: string }) => void;
   removeCustomSession: (name: string) => void;
 }
@@ -444,7 +445,46 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         message: `Reminders & notifications enabled.${fcmMsg}`,
       };
     },
-    sendTestReminder: async () => sendTestNotification(),
+    sendTestReminder: async () => {
+      const local = await sendTestNotification();
+      if (!local.ok) return local;
+      if (authUser) {
+        const push = await sendServerPush(
+          authUser.uid,
+          'PTA Alarm Test',
+          'Server push test — if you see this, closed-app alarms can reach this device.'
+        );
+        if (push.success) {
+          return {
+            ok: true,
+            message: 'Test alarm sent (local + server push). Check your notification shade.',
+          };
+        }
+        return {
+          ok: true,
+          message: `${local.message} Server push: ${push.message || 'not registered yet — tap Allow notifications first.'}`,
+        };
+      }
+      return local;
+    },
+    sendTestAlarmInOneMinute: async () => {
+      const sched = await scheduleTestAlarm(60_000);
+      if (!sched.ok) return sched;
+      if (authUser) {
+        // Also queue a delayed server push so phone can alert if tab is killed
+        window.setTimeout(() => {
+          void sendServerPush(
+            authUser.uid,
+            'PTA Alarm Test',
+            '1-minute server alarm test — tap to open PTA.'
+          );
+        }, 60_000);
+      }
+      return {
+        ok: true,
+        message: `${sched.message} A server push will also try in 60s.`,
+      };
+    },
     addCustomSession: (def) => {
       ptaStore.addCustomSession(uid, def);
       refresh();

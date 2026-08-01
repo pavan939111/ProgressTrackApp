@@ -22,6 +22,7 @@ export function ProfilePage() {
     updateProfile,
     enableNotifications,
     sendTestReminder,
+    sendTestAlarmInOneMinute,
     addCustomSession,
     removeCustomSession,
   } = useApp();
@@ -93,6 +94,17 @@ export function ProfilePage() {
     setNotifMsg(null);
     try {
       const res = await sendTestReminder();
+      setNotifMsg(res.message);
+    } finally {
+      setNotifBusy(false);
+    }
+  };
+
+  const testAlarmSoon = async () => {
+    setNotifBusy(true);
+    setNotifMsg(null);
+    try {
+      const res = await sendTestAlarmInOneMinute();
       setNotifMsg(res.message);
     } finally {
       setNotifBusy(false);
@@ -232,7 +244,16 @@ export function ProfilePage() {
               className="flex items-center gap-2 px-4 py-2.5 min-h-11 rounded-xl border border-border text-xs font-bold text-foreground disabled:opacity-60"
             >
               <Bell className="w-4 h-4" />
-              Send test notification
+              Test alarm now
+            </button>
+            <button
+              type="button"
+              onClick={() => void testAlarmSoon()}
+              disabled={notifBusy}
+              className="flex items-center gap-2 px-4 py-2.5 min-h-11 rounded-xl border border-primary/40 text-xs font-bold text-primary disabled:opacity-60"
+            >
+              <Bell className="w-4 h-4" />
+              Test alarm in 1 min
             </button>
             <div className="rounded-xl border border-border bg-muted/40 p-3 space-y-1 text-xs text-muted-foreground">
               <p>
@@ -348,7 +369,15 @@ export function ProfilePage() {
                   disabled={notifBusy}
                   className="px-4 py-2.5 rounded-xl border border-border text-xs font-bold min-h-11 disabled:opacity-60"
                 >
-                  Test alert
+                  Test alarm now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void testAlarmSoon()}
+                  disabled={notifBusy}
+                  className="px-4 py-2.5 rounded-xl border border-primary/40 text-primary text-xs font-bold min-h-11 disabled:opacity-60"
+                >
+                  Test alarm in 1 min
                 </button>
               </div>
               {notifMsg && <p className="text-xs text-secondary font-semibold">{notifMsg}</p>}
