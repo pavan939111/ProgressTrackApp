@@ -1,36 +1,7 @@
 import { NextRequest } from 'next/server';
 import { apiSuccess, apiError } from '../../../../shared/errors/apiResponse';
 import { requireUser } from '../../../../auth/sessionAuth';
-
-async function getAdminDb() {
-  try {
-    const mod = await import('firebase-admin');
-    const admin = (mod as any).default ?? mod;
-    if (!admin.apps?.length) {
-      if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-        const cred = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-        admin.initializeApp({ credential: admin.credential.cert(cred) });
-      } else if (
-        process.env.FIREBASE_PROJECT_ID &&
-        process.env.FIREBASE_CLIENT_EMAIL &&
-        process.env.FIREBASE_PRIVATE_KEY
-      ) {
-        admin.initializeApp({
-          credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-          }),
-        });
-      } else {
-        return null;
-      }
-    }
-    return admin.firestore();
-  } catch {
-    return null;
-  }
-}
+import { getAdminFirestore } from '../../../../auth/adminApp';
 
 /** Mirror client localStorage writes into Firestore (server-side only). */
 export async function POST(req: NextRequest) {
@@ -45,7 +16,7 @@ export async function POST(req: NextRequest) {
       data: Record<string, unknown>;
     }>;
 
-    const db = await getAdminDb();
+    const db = getAdminFirestore();
     if (!db) {
       return apiError('Firestore Admin not configured on server', 'SYNC_503', 503);
     }
@@ -84,7 +55,7 @@ export async function GET(req: NextRequest) {
   if (!user) return apiError('Unauthorized', 'AUTH_401', 401);
 
   try {
-    const db = await getAdminDb();
+    const db = getAdminFirestore();
     if (!db) {
       return apiSuccess({ profile: null, settings: null, goals: [] }, 'No Firestore');
     }
@@ -98,7 +69,7 @@ export async function GET(req: NextRequest) {
     return apiSuccess({
       profile: profileSnap.exists ? profileSnap.data() : null,
       settings: settingsSnap.exists ? settingsSnap.data() : null,
-      goals: goalsSnap.docs.map((d: { data: () => unknown }) => d.data()),
+      goals: goalsSnap.docs.map((d) => d.data()),
     });
   } catch (e: any) {
     return apiError(e.message || 'Hydrate failed', 'SYNC_500', 500);

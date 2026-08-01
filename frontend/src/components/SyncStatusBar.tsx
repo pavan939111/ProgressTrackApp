@@ -70,14 +70,30 @@ export function SyncStatusBar({ className = '' }: { className?: string }) {
 
   const Icon = status === 'offline' ? CloudOff : status === 'syncing' ? RefreshCw : Cloud;
 
+  const flush = async () => {
+    if (!online || pending === 0) return;
+    setSyncing(true);
+    try {
+      const { ptaStore } = await import('@/lib/ptaStore');
+      await ptaStore.flushPendingSync();
+      setPending(getSyncQueue().length);
+    } catch {
+      /* keep pending */
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
-    <div
+    <button
+      type="button"
+      onClick={() => void flush()}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wide ${color} bg-card/80 ${className}`}
-      title={`Sync status: ${label}`}
-      role="status"
+      title={pending > 0 ? 'Tap to retry sync' : `Sync status: ${label}`}
+      aria-label={pending > 0 ? 'Retry pending sync' : `Sync status: ${label}`}
     >
       <Icon className={`w-3 h-3 ${status === 'syncing' ? 'animate-spin' : ''}`} />
       {label}
-    </div>
+    </button>
   );
 }

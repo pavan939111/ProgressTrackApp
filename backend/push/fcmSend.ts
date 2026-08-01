@@ -1,4 +1,6 @@
+import { getMessaging } from 'firebase-admin/messaging';
 import { fcmTokenStore } from './fcmTokenStore';
+import { ensureFirebaseAdmin } from '../auth/adminApp';
 
 type AdminMessaging = {
   sendEachForMulticast: (msg: {
@@ -13,9 +15,6 @@ type AdminMessaging = {
   }>;
 };
 
-let messaging: AdminMessaging | null = null;
-let initAttempted = false;
-
 export function fcmAdminConfigured() {
   return Boolean(
     process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
@@ -25,35 +24,13 @@ export function fcmAdminConfigured() {
   );
 }
 
-async function getMessaging(): Promise<AdminMessaging | null> {
-  if (messaging) return messaging;
-  if (initAttempted) return null;
-  initAttempted = true;
-
+async function getMessagingClient(): Promise<AdminMessaging | null> {
   if (!fcmAdminConfigured()) return null;
-
+  if (!ensureFirebaseAdmin()) return null;
   try {
-    const mod = await import('firebase-admin');
-    const admin = (mod as any).default ?? mod;
-
-    if (!admin.apps?.length) {
-      if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-        const cred = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-        admin.initializeApp({ credential: admin.credential.cert(cred) });
-      } else {
-        admin.initializeApp({
-          credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID!,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
-            privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-          }),
-        });
-      }
-    }
-    messaging = admin.messaging() as AdminMessaging;
-    return messaging;
+    return getMessaging() as unknown as AdminMessaging;
   } catch (e) {
-    console.warn('firebase-admin unavailable for FCM:', e);
+    console.warn('firebase-admin messaging unavailable:', e);
     return null;
   }
 }
@@ -67,7 +44,7 @@ export async function sendPushToUser(
     return { success: false, message: 'No device tokens registered', sent: 0 };
   }
 
-  const msg = await getMessaging();
+  const msg = await getMessagingClient();
   if (!msg) {
     return {
       success: false,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { X, Settings, Bell, Sun, Moon, Monitor, Upload, Plus, Trash2 } from 'lucide-react';
 import { CalendarIntegrationsPanel } from '@/features/integrations/CalendarIntegrationsPanel';
@@ -39,6 +39,18 @@ export const SettingsModal = () => {
   const [customStart, setCustomStart] = useState('09:00');
   const [customEnd, setCustomEnd] = useState('10:00');
   const [customReminder, setCustomReminder] = useState('09:00');
+
+  useEffect(() => {
+    if (!isSettingsOpen) return;
+    setFullName(user.fullName);
+    setMorning(settings.morningReminder);
+    setLunch(settings.beforeLunchReminder);
+    setAfternoon(settings.afternoonReminder);
+    setEvening(settings.eveningReminder);
+    setNight(settings.nightReminder);
+    setPlanning(settings.planningReminder);
+    setWeekly(settings.weeklyReminder);
+  }, [isSettingsOpen, user.fullName, settings]);
 
   if (!isSettingsOpen) return null;
 

@@ -52,6 +52,18 @@ You may keep `NEXT_PUBLIC_FIREBASE_*` **on the backend only** as aliases. Do **n
 
 Also enable **Google** under Firebase Console → Authentication → Sign-in method (required for Continue with Google).
 
+### If you see `INVALID IDP RESPONSE` / audience not allowed
+Your `GOOGLE_CLIENT_ID` is from a different Google Cloud project than Firebase (`pta-1-8f439`). PTA now falls back to **Admin custom tokens** when that happens (needs `FIREBASE_SERVICE_ACCOUNT_JSON` on the backend).
+
+Optional hard fix in Firebase Console:
+1. Authentication → Sign-in method → Google → Web SDK configuration  
+2. Add your Web client ID: `….apps.googleusercontent.com`  
+3. Or create a new OAuth Web client **inside** the Firebase-linked GCP project and update `GOOGLE_CLIENT_ID` / `SECRET`.
+
+Ensure Authorized redirect URIs include:
+- `https://backend-six-roan-24.vercel.app/api/oauth/google/callback`
+- `http://localhost:3001/api/oauth/google/callback`
+
 ---
 
 ## Cloudinary (backend)

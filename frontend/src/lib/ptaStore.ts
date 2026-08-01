@@ -18,7 +18,7 @@ import {
   WeeklyGoal,
   WeeklyReport,
 } from '@/types';
-import { enqueueSync, resolveConflict, flushSyncQueue } from '@/lib/offlineSync';
+import { enqueueSync, resolveConflict, flushSyncQueue, clearSyncQueue } from '@/lib/offlineSync';
 import { awardXp, checkAchievements, recomputeStreak, xpForPriority, XP } from '@/lib/gamification';
 import { authHeaders, backendHydrate, backendSync } from '@/lib/authClient';
 
@@ -78,9 +78,22 @@ async function mirrorFirestore(collectionName: string, docId: string, data: obje
   enqueueSync({ collection: collectionName, docId, data });
   if (!navigator.onLine) return;
   try {
-    await backendSync([{ collection: collectionName, docId, data }]);
+    const res = await backendSync([{ collection: collectionName, docId, data }]);
+    if (res.success) {
+      await flushSyncQueue(async (collection, id, payload) => {
+        const r = await backendSync([{ collection, docId: id, data: payload }]);
+        if (!r.success) throw new Error(r.message || 'sync failed');
+      });
+      return;
+    }
+    const msg = String(res.message || '');
+    const code = String((res as { errorCode?: string }).errorCode || '');
+    // Permanent server config gap — don't leave a forever PENDING badge
+    if (code === 'SYNC_503' || msg.toLowerCase().includes('admin not configured')) {
+      clearSyncQueue();
+    }
   } catch {
-    // stays queued
+    // stays queued for retry when online/admin recovers
   }
 }
 

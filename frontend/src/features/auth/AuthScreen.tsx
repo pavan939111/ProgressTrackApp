@@ -9,7 +9,7 @@ type Mode = 'login' | 'register' | 'reset';
 const fieldClass =
   'w-full bg-card border border-border rounded-xl px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all min-h-12';
 
-function GoogleIcon({ className = 'w-4 h-4' }: { className?: string }) {
+function GoogleIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
       <path
@@ -33,8 +33,7 @@ function GoogleIcon({ className = 'w-4 h-4' }: { className?: string }) {
 }
 
 export function AuthScreen() {
-  const { login, register, resetPassword, enterDemo, loginWithGoogle, loading, authError, clearAuthError } =
-    useAuth();
+  const { login, register, resetPassword, loginWithGoogle, loading, authError, clearAuthError } = useAuth();
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,7 +43,13 @@ export function AuthScreen() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (authError) setError(authError);
+    if (!authError) return;
+    const friendly = /INVALID IDP RESPONSE|not allowed to be used with this application|audience/i.test(
+      authError
+    )
+      ? 'Google sign-in is misconfigured on the server (OAuth client not linked to Firebase). Try again after the backend update, or use email sign-in.'
+      : authError;
+    setError(friendly);
   }, [authError]);
 
   const submit = async (e: React.FormEvent) => {
@@ -93,6 +98,30 @@ export function AuthScreen() {
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+          {mode !== 'reset' && (
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={loginWithGoogle}
+                disabled={busy}
+                className="w-full min-h-14 rounded-xl bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center gap-3 shadow-md shadow-primary/25 hover:opacity-95 transition-opacity disabled:opacity-60"
+              >
+                <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-background">
+                  <GoogleIcon />
+                </span>
+                Continue with Google
+              </button>
+              <p className="text-[10px] text-muted-foreground text-center">
+                Recommended — sign in with your Google account
+              </p>
+              <div className="flex items-center gap-3 text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                <div className="flex-1 h-px bg-border" />
+                or email
+                <div className="flex-1 h-px bg-border" />
+              </div>
+            </div>
+          )}
+
           <div className="flex p-1 rounded-xl bg-muted gap-1">
             {(['login', 'register', 'reset'] as Mode[]).map((m) => (
               <button
@@ -114,25 +143,6 @@ export function AuthScreen() {
               </button>
             ))}
           </div>
-
-          {mode !== 'reset' && (
-            <div className="space-y-3">
-              <button
-                type="button"
-                onClick={loginWithGoogle}
-                disabled={busy}
-                className="w-full min-h-12 rounded-xl border border-border bg-background hover:bg-muted/60 text-sm font-bold text-foreground flex items-center justify-center gap-2.5 transition-colors disabled:opacity-60"
-              >
-                <GoogleIcon />
-                Continue with Google
-              </button>
-              <div className="flex items-center gap-3 text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
-                <div className="flex-1 h-px bg-border" />
-                or email
-                <div className="flex-1 h-px bg-border" />
-              </div>
-            </div>
-          )}
 
           <form onSubmit={submit} className="space-y-4">
             {mode === 'register' && (
@@ -186,7 +196,7 @@ export function AuthScreen() {
               {busy
                 ? 'Please wait…'
                 : mode === 'login'
-                  ? 'Sign in'
+                  ? 'Sign in with email'
                   : mode === 'register'
                     ? 'Create account'
                     : 'Send reset link'}
@@ -195,18 +205,9 @@ export function AuthScreen() {
           </form>
         </div>
 
-        <div className="space-y-3">
-          <p className="text-[10px] text-muted-foreground text-center px-2">
-            Google and email auth run on the backend. Demo mode works offline.
-          </p>
-          <button
-            type="button"
-            onClick={enterDemo}
-            className="w-full py-3.5 min-h-12 rounded-xl border border-border bg-card text-sm font-bold text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
-          >
-            Continue in Demo mode
-          </button>
-        </div>
+        <p className="text-[10px] text-muted-foreground text-center px-2">
+          Auth is handled by the backend. Use Google for the fastest start, or email to sign in / register.
+        </p>
       </div>
     </div>
   );

@@ -115,7 +115,8 @@ export async function lookupAccount(idToken: string): Promise<{
 
 /**
  * Exchange a Google ID token (or access token) for Firebase Auth tokens.
- * Requires Google provider enabled in Firebase Console → Authentication → Sign-in method.
+ * Tries Identity Toolkit signInWithIdp first; on audience mismatch (OAuth client
+ * not allowlisted on the Firebase project), falls back to Admin custom tokens.
  */
 export async function signInWithGoogleIdp(params: {
   idToken?: string;
@@ -127,14 +128,133 @@ export async function signInWithGoogleIdp(params: {
   if (!params.idToken && !params.accessToken) {
     throw new Error('Google id_token or access_token required');
   }
-  const postBody = params.idToken
-    ? `id_token=${encodeURIComponent(params.idToken)}&providerId=google.com`
-    : `access_token=${encodeURIComponent(params.accessToken!)}&providerId=google.com`;
 
-  return postJson(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=${key}`, {
-    postBody,
-    requestUri: params.requestUri,
-    returnIdpCredential: true,
+  try {
+    const postBody = params.idToken
+      ? `id_token=${encodeURIComponent(params.idToken)}&providerId=google.com`
+      : `access_token=${encodeURIComponent(params.accessToken!)}&providerId=google.com`;
+
+    return await postJson(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=${key}`, {
+      postBody,
+      requestUri: params.requestUri,
+      returnIdpCredential: true,
+      returnSecureToken: true,
+    });
+  } catch (err: any) {
+    const msg = String(err?.message || '');
+    const audienceMismatch =
+      /INVALID IDP RESPONSE|not allowed to be used with this application|audience/i.test(msg);
+    if (!audienceMismatch) throw err;
+    return signInWithGoogleViaAdmin(params);
+  }
+}
+
+type GoogleProfile = {
+  sub: string;
+  email: string;
+  email_verified?: boolean | string;
+  name?: string;
+  picture?: string;
+};
+
+async function fetchGoogleProfile(params: {
+  idToken?: string;
+  accessToken?: string;
+}): Promise<GoogleProfile> {
+  const expectedAud = process.env.GOOGLE_CLIENT_ID || '';
+
+  if (params.idToken) {
+    const res = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(params.idToken)}`
+    );
+    if (res.ok) {
+      const info = (await res.json()) as GoogleProfile & { aud?: string; azp?: string };
+      if (expectedAud && info.aud !== expectedAud && info.azp !== expectedAud) {
+        throw new Error('Google ID token audience does not match GOOGLE_CLIENT_ID');
+      }
+      if (!info.email || !info.sub) throw new Error('Google ID token missing email/sub');
+      return info;
+    }
+  }
+
+  if (params.accessToken) {
+    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${params.accessToken}` },
+    });
+    if (!res.ok) throw new Error(`Google userinfo failed: ${await res.text()}`);
+    const info = (await res.json()) as GoogleProfile;
+    if (!info.email || !info.sub) throw new Error('Google userinfo missing email/sub');
+    return info;
+  }
+
+  throw new Error('Could not verify Google account profile');
+}
+
+/**
+ * Verify Google tokens ourselves, then mint Firebase session via Admin custom token.
+ * Works when GOOGLE_CLIENT_ID is not the Firebase-console Web client (common when
+ * Calendar OAuth client lives in a different GCP project).
+ */
+export async function signInWithGoogleViaAdmin(params: {
+  idToken?: string;
+  accessToken?: string;
+}): Promise<AuthTokens> {
+  const key = apiKey();
+  if (!key) throw new Error('Firebase Auth is not configured on the server');
+
+  const { getFirebaseAdmin } = await import('./adminApp');
+  const admin = await getFirebaseAdmin();
+  if (!admin) {
+    throw new Error(
+      'Google OAuth client is not linked to this Firebase project. Add GOOGLE_CLIENT_ID under Firebase Authentication → Google → Web SDK configuration, or set FIREBASE_SERVICE_ACCOUNT_JSON so login can use Admin custom tokens.'
+    );
+  }
+
+  const profile = await fetchGoogleProfile(params);
+  const email = profile.email;
+  const displayName = profile.name || email.split('@')[0] || 'Google User';
+
+  let uid: string;
+  try {
+    const existing = await admin.auth().getUserByEmail(email);
+    uid = existing.uid;
+    if (displayName && existing.displayName !== displayName) {
+      await admin.auth().updateUser(uid, { displayName }).catch(() => undefined);
+    }
+  } catch (e: any) {
+    if (e?.code !== 'auth/user-not-found') throw e;
+    const created = await admin.auth().createUser({
+      email,
+      emailVerified: profile.email_verified === true || profile.email_verified === 'true',
+      displayName,
+      photoURL: profile.picture,
+    });
+    uid = created.uid;
+  }
+
+  // Skip provider linking — createCustomToken is enough for a valid session.
+
+  const customToken = await admin.auth().createCustomToken(uid, {
+    provider: 'google.com',
+    email,
+  });
+
+  const session = await postJson<{
+    idToken: string;
+    refreshToken: string;
+    expiresIn: string;
+    localId?: string;
+  }>(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${key}`, {
+    token: customToken,
     returnSecureToken: true,
   });
+
+  return {
+    idToken: session.idToken,
+    refreshToken: session.refreshToken,
+    localId: session.localId || uid,
+    email,
+    displayName,
+    expiresIn: session.expiresIn || '3600',
+  };
 }

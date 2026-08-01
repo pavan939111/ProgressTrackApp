@@ -20,5 +20,8 @@
 #    Authorized JavaScript origin (optional):
 #      https://progress-track-app.vercel.app
 # 5. Firebase Console → Authentication → Sign-in method → enable Google
+#    If Google login shows INVALID IDP RESPONSE (audience), either:
+#      - Whitelist GOOGLE_CLIENT_ID in Google provider Web SDK config, OR
+#      - Keep FIREBASE_SERVICE_ACCOUNT_JSON set (backend uses Admin custom-token fallback)
 #
 # Never commit filled frontend.env / backend.env — they are gitignored.

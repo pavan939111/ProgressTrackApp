@@ -44,16 +44,28 @@ export function authHeaders(): Record<string, string> {
   return { Authorization: `Bearer ${s.idToken}` };
 }
 
-async function api<T>(path: string, options?: RequestInit): Promise<{ success: boolean; data?: T; message?: string }> {
-  const res = await fetch(`${apiBase()}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders(),
-      ...(options?.headers || {}),
-    },
-  });
-  return res.json();
+async function api<T>(
+  path: string,
+  options?: RequestInit
+): Promise<{ success: boolean; data?: T; message?: string; errorCode?: string }> {
+  try {
+    const res = await fetch(`${apiBase()}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders(),
+        ...(options?.headers || {}),
+      },
+    });
+    const json = await res.json().catch(() => ({
+      success: false,
+      message: `HTTP ${res.status}`,
+      errorCode: `HTTP_${res.status}`,
+    }));
+    return json;
+  } catch (e: any) {
+    return { success: false, message: e?.message || 'Network error', errorCode: 'NETWORK' };
+  }
 }
 
 export async function backendLogin(email: string, password: string) {
