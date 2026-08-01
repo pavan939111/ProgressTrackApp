@@ -58,18 +58,18 @@ export const CalendarView = () => {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Month view, day drill-down, and calendar sync.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 relative z-10">
           <button
             type="button"
             onClick={exportToday}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted border border-border text-xs font-bold text-cyan-400"
+            className="flex items-center gap-1.5 px-3 py-2.5 min-h-11 rounded-xl bg-muted border border-border text-xs font-bold text-cyan-400"
           >
             <Download className="w-3.5 h-3.5" /> Export ICS
           </button>
           <button
             type="button"
             onClick={() => setShowIntegrations((v) => !v)}
-            className="px-3 py-2 rounded-xl bg-cyan-600 text-xs font-bold text-foreground"
+            className="px-3 py-2.5 min-h-11 rounded-xl bg-cyan-600 text-xs font-bold text-foreground"
           >
             {showIntegrations ? 'Hide Sync' : 'Integrations'}
           </button>

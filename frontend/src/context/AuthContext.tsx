@@ -79,6 +79,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let cancelled = false;
+    const bootTimeout = window.setTimeout(() => {
+      if (!cancelled) {
+        saveSession(null);
+        setLoading(false);
+      }
+    }, 8000);
+
     (async () => {
       try {
         const oauthErr = consumeAuthErrorQuery();
@@ -150,11 +157,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch {
         saveSession(null);
       } finally {
+        window.clearTimeout(bootTimeout);
         if (!cancelled) setLoading(false);
       }
     })();
     return () => {
       cancelled = true;
+      window.clearTimeout(bootTimeout);
     };
   }, []);
 
@@ -189,6 +198,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const enterDemo = () => {
     saveSession(null);
+    try {
+      localStorage.removeItem('pta_offline_sync_queue');
+      window.dispatchEvent(new Event('pta-sync-queue'));
+    } catch {
+      /* ignore */
+    }
     const uid = 'demo-user-123';
     const profile = ptaStore.ensureSeeded(uid, 'demo.user@example.com', 'Demo User');
     setIsDemo(true);

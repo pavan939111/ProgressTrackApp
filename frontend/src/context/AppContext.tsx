@@ -65,7 +65,10 @@ interface AppContextType {
   moveTask: (taskId: string, toDate: string) => void;
   deleteTask: (taskId: string) => void;
   startTask: (taskId: string) => void;
-  completeSession: (sessionId: string) => void;
+  completeSession: (
+    sessionId: string,
+    meta?: { notes?: string; blockers?: string; confidence?: number }
+  ) => void;
   generateDailyReport: () => DailyReport;
   generateWeeklyReport: () => WeeklyReport;
   enableNotifications: () => Promise<void>;
@@ -324,12 +327,12 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       ptaStore.startTask(uid, taskId);
       refresh();
     },
-    completeSession: (sessionId) => {
-      const result = ptaStore.completeSession(uid, sessionId);
+    completeSession: (sessionId, meta) => {
+      const result = ptaStore.completeSession(uid, sessionId, meta);
       if (result) {
         setUser(result.profile);
         if (result.xpEarned) showXp(result.xpEarned, `${result.session.name} complete`);
-        triggerConfetti();
+        if (result.xpEarned) triggerConfetti();
       }
       setActiveCheckInSession(null);
       refresh();

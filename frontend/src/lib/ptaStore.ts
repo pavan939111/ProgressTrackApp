@@ -72,10 +72,11 @@ function setLocal<T>(k: string, value: T) {
 
 async function mirrorFirestore(collectionName: string, docId: string, data: object) {
   // Never talk to Firestore from the browser — queue + backend /api/sync
-  enqueueSync({ collection: collectionName, docId, data });
   if (typeof window === 'undefined') return;
-  if (!navigator.onLine) return;
+  // Demo / signed-out: keep data local only (avoid perpetual PENDING queue)
   if (!authHeaders().Authorization) return;
+  enqueueSync({ collection: collectionName, docId, data });
+  if (!navigator.onLine) return;
   try {
     await backendSync([{ collection: collectionName, docId, data }]);
   } catch {
@@ -642,21 +643,53 @@ export const ptaStore = {
     return this.updateTask(uid, taskId, { status: 'In Progress' });
   },
 
-  completeSession(uid: string, sessionId: string) {
+  completeSession(
+    uid: string,
+    sessionId: string,
+    meta?: { notes?: string; blockers?: string; confidence?: number }
+  ) {
     const sessions = this.listSessions(uid);
     const s = sessions.find((x) => x.sessionId === sessionId);
     if (!s) return null;
+
+    const wasAlreadyComplete = s.status === 'Completed';
     const sessionTasks = this.listTasks(uid).filter((t) => t.sessionId === sessionId);
-    const allDone = sessionTasks.length > 0 && sessionTasks.every((t) => t.status === 'Completed');
+    // Empty sessions still earn check-in XP. With tasks, award when all are Completed or Skipped.
+    const eligibleForXp =
+      sessionTasks.length === 0 ||
+      sessionTasks.every((t) => t.status === 'Completed' || t.status === 'Skipped');
+
     s.status = 'Completed';
     s.updatedAt = new Date().toISOString();
     setLocal(key(uid, 'sessions'), sessions);
+
+    if (meta?.notes || meta?.blockers || meta?.confidence != null) {
+      const log: ProgressLog = {
+        logId: id('log'),
+        uid,
+        taskId: '',
+        dailyPlanId: s.dailyPlanId,
+        sessionId: s.sessionId,
+        session: s.name as SessionName,
+        completed: true,
+        progressNotes: meta?.notes,
+        blockers: meta?.blockers,
+        confidence: meta?.confidence,
+        timestamp: new Date().toISOString(),
+      };
+      const logs = this.listLogs(uid);
+      logs.push(log);
+      setLocal(key(uid, 'logs'), logs);
+      void mirrorFirestore('progressLogs', log.logId, log);
+    }
+
     let profile = this.getProfile(uid) || defaultProfile({ uid, email: 'demo.user@example.com' });
     let xpEarned = 0;
-    if (allDone) {
+    if (eligibleForXp && !wasAlreadyComplete) {
       profile = awardXp(profile, XP.SESSION_COMPLETE, `${s.name} session complete`);
       xpEarned = XP.SESSION_COMPLETE;
       this.saveProfile(profile);
+      this.maybeUnlock(uid, profile, 'Execution');
     }
     return { session: s, profile, xpEarned };
   },

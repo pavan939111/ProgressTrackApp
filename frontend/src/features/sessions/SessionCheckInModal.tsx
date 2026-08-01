@@ -27,7 +27,11 @@ export const SessionCheckInModal = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    completeSession(activeCheckInSession.sessionId);
+    completeSession(activeCheckInSession.sessionId, {
+      notes: notes.trim() || undefined,
+      blockers: blockers.trim() || undefined,
+      confidence,
+    });
     setNotes('');
     setBlockers('');
     setConfidence(5);
@@ -148,9 +152,16 @@ export const SessionCheckInModal = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" role="group" aria-label="Confidence rating">
             {[1, 2, 3, 4, 5].map((star) => (
-              <button type="button" key={star} onClick={() => setConfidence(star)} className="min-h-11 min-w-11 flex items-center justify-center">
+              <button
+                type="button"
+                key={star}
+                onClick={() => setConfidence(star)}
+                className="min-h-11 min-w-11 flex items-center justify-center"
+                aria-label={`Confidence ${star} of 5`}
+                aria-pressed={star <= confidence}
+              >
                 <Star
                   className={`w-6 h-6 ${
                     star <= confidence ? 'text-accent fill-accent' : 'text-muted-foreground/40'
@@ -169,7 +180,7 @@ export const SessionCheckInModal = () => {
               Cancel
             </button>
             <button type="submit" className="btn-primary px-6 py-3 text-xs min-h-12">
-              Complete session (+75 XP)
+              Complete session (+20 XP)
             </button>
           </div>
         </form>

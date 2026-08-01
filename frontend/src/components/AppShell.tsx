@@ -85,6 +85,7 @@ function ThemeCycleButton({ className = '' }: { className?: string }) {
 
 export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: Props) {
   const { user, openSettings, openPlanner } = useApp();
+  const mainRef = React.useRef<HTMLElement | null>(null);
 
   const handleNav = (id: AppTab | 'planner' | 'settings') => {
     if (id === 'planner') {
@@ -96,6 +97,11 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
       return;
     }
     setActiveTab(id);
+    // Keep sticky mobile header from covering the first controls after tab switch.
+    requestAnimationFrame(() => {
+      mainRef.current?.scrollTo({ top: 0 });
+      window.scrollTo(0, 0);
+    });
   };
 
   return (
@@ -221,7 +227,10 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto px-4 md:px-8 pb-28 lg:pb-12 pt-4">
+        <main
+          ref={mainRef}
+          className="flex-1 overflow-y-auto px-4 md:px-8 pb-28 lg:pb-12 pt-4 scroll-smooth"
+        >
           <div className="w-full max-w-3xl mx-auto lg:max-w-2xl">{children}</div>
         </main>
       </div>
