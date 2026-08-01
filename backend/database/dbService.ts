@@ -7,6 +7,7 @@ import {
   getDocs,
   query,
   where,
+  type Firestore,
 } from 'firebase/firestore';
 import {
   UserProfile,
@@ -36,6 +37,11 @@ const STORAGE_KEYS = {
   ACHIEVEMENTS: 'pta_achievements',
   XP_HISTORY: 'pta_xp_history',
 };
+
+/** Narrow Firestore | null for callbacks (forEach) where TS loses the guard. */
+function firestoreDb(): Firestore | null {
+  return db;
+}
 
 function getLocal<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
@@ -578,10 +584,11 @@ export const dbService = {
     setLocal(STORAGE_KEYS.TASKS, [...filteredTasks, ...tasks]);
 
     try {
-      if (db) {
-        setDoc(doc(db, 'dailyPlans', plan.planId), plan, { merge: true });
-        sessions.forEach((s) => setDoc(doc(db, 'sessions', s.sessionId), s, { merge: true }));
-        tasks.forEach((t) => setDoc(doc(db, 'tasks', t.taskId), t, { merge: true }));
+      const firestore = firestoreDb();
+      if (firestore) {
+        setDoc(doc(firestore, 'dailyPlans', plan.planId), plan, { merge: true });
+        sessions.forEach((s) => setDoc(doc(firestore, 'sessions', s.sessionId), s, { merge: true }));
+        tasks.forEach((t) => setDoc(doc(firestore, 'tasks', t.taskId), t, { merge: true }));
       }
     } catch (e) {
       console.warn('Firestore plan batch sync warning:', e);
