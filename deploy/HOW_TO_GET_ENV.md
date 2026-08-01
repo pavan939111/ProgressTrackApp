@@ -69,3 +69,16 @@ Ensure Authorized redirect URIs include:
 ## Cloudinary (backend)
 
 Cloud name, API key, API secret — backend only.
+
+---
+
+## Session alarms (backend cron)
+
+1. Set `CRON_SECRET` on the backend Vercel project (any long random string).
+2. Ensure `FIREBASE_SERVICE_ACCOUNT_JSON` (or PROJECT_ID / CLIENT_EMAIL / PRIVATE_KEY) is set — needed to send FCM.
+3. Redeploy backend. Vercel Cron hits `/api/cron/reminders` every minute (Pro plan). On Hobby, use an external cron (e.g. cron-job.org) every minute:
+
+`GET https://YOUR-BACKEND.vercel.app/api/cron/reminders`  
+Header: `Authorization: Bearer YOUR_CRON_SECRET`
+
+4. On the phone: Profile → Allow notifications (registers FCM token) → set reminder times → Save.

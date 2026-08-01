@@ -1,5 +1,4 @@
-import fs from 'fs';
-import path from 'path';
+import { getAdminFirestore } from '../auth/adminApp';
 
 export type DeviceToken = {
   uid: string;
@@ -8,45 +7,56 @@ export type DeviceToken = {
   updatedAt: string;
 };
 
-const dataDir = path.join(process.cwd(), '.data');
-const filePath = path.join(dataDir, 'fcm-tokens.json');
+const COLLECTION = 'deviceTokens';
 
-function ensure() {
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-  if (!fs.existsSync(filePath)) fs.writeFileSync(filePath, '{}', 'utf8');
-}
-
-function readAll(): Record<string, DeviceToken[]> {
-  try {
-    ensure();
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  } catch {
-    return {};
-  }
-}
-
-function writeAll(data: Record<string, DeviceToken[]>) {
-  ensure();
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+/** Stable doc id from token (avoids Firestore path issues with long FCM tokens). */
+function tokenDocId(token: string): string {
+  let h = 0;
+  for (let i = 0; i < token.length; i++) h = (Math.imul(31, h) + token.charCodeAt(i)) | 0;
+  return `t_${(h >>> 0).toString(16)}_${token.slice(0, 12)}`;
 }
 
 export const fcmTokenStore = {
-  register(uid: string, token: string) {
-    const all = readAll();
-    const list = all[uid] || [];
-    const filtered = list.filter((t) => t.token !== token);
-    filtered.push({ uid, token, platform: 'web', updatedAt: new Date().toISOString() });
-    all[uid] = filtered.slice(-10);
-    writeAll(all);
+  async register(uid: string, token: string): Promise<void> {
+    const db = getAdminFirestore();
+    if (!db) {
+      console.warn('FCM token register skipped: Firestore Admin not configured');
+      return;
+    }
+    const doc: DeviceToken = {
+      uid,
+      token,
+      platform: 'web',
+      updatedAt: new Date().toISOString(),
+    };
+    await db.collection(COLLECTION).doc(tokenDocId(token)).set(doc, { merge: true });
   },
 
-  list(uid: string): DeviceToken[] {
-    return readAll()[uid] || [];
+  async list(uid: string): Promise<DeviceToken[]> {
+    const db = getAdminFirestore();
+    if (!db) return [];
+    const snap = await db.collection(COLLECTION).where('uid', '==', uid).get();
+    return snap.docs.map((d) => d.data() as DeviceToken);
   },
 
-  remove(uid: string, token: string) {
-    const all = readAll();
-    all[uid] = (all[uid] || []).filter((t) => t.token !== token);
-    writeAll(all);
+  async listAllUids(): Promise<string[]> {
+    const db = getAdminFirestore();
+    if (!db) return [];
+    const snap = await db.collection(COLLECTION).select('uid').get();
+    const set = new Set<string>();
+    snap.docs.forEach((d) => {
+      const uid = (d.data() as { uid?: string }).uid;
+      if (uid) set.add(uid);
+    });
+    return [...set];
+  },
+
+  async remove(uid: string, token: string): Promise<void> {
+    const db = getAdminFirestore();
+    if (!db) return;
+    await db.collection(COLLECTION).doc(tokenDocId(token)).delete().catch(() => undefined);
+    // Also clean any legacy docs that match by query
+    const snap = await db.collection(COLLECTION).where('uid', '==', uid).where('token', '==', token).get();
+    await Promise.all(snap.docs.map((d) => d.ref.delete()));
   },
 };

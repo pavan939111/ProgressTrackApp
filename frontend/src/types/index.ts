@@ -43,6 +43,8 @@ export interface UserSettings {
   theme: 'dark' | 'light' | 'system';
   workDays: number[];
   syncEnabled: boolean;
+  /** IANA timezone for server-side session alarms */
+  timezone?: string;
   /** Extra sessions beyond the 5 defaults (FR-05). */
   customSessions?: CustomSessionDef[];
   createdAt: string;

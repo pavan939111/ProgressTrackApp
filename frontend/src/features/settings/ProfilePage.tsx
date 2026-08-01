@@ -242,8 +242,8 @@ export function ProfilePage() {
               </p>
               <p>
                 Mobile tip: Android needs this permission prompt. iPhone needs <strong>Add to Home Screen</strong> first,
-                then open PTA from the icon and allow notifications. Web apps cannot use native Alarm permission — session
-                times use notifications instead.
+                then open PTA from the icon and allow notifications. Session alarms use Notifications + server push (not
+                the phone Alarm app permission).
               </p>
               {notifMsg && <p className="text-secondary font-semibold pt-1">{notifMsg}</p>}
             </div>
@@ -353,9 +353,11 @@ export function ProfilePage() {
               </div>
               {notifMsg && <p className="text-xs text-secondary font-semibold">{notifMsg}</p>}
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                There is no separate “alarm permission” on the web. PTA uses Notifications: session start alerts, plus a
-                repeating reminder every <strong>5 minutes</strong> during the current session until you update or
-                complete your open tasks. Keep Notifications allowed in phone settings.
+                Alarms use <strong>Notifications + server push</strong> (there is no separate phone Alarm
+                permission for web apps). After you Allow notifications, PTA registers your device and the
+                backend fires session alarms at your set times — even when the app is closed. A 5‑minute
+                progress nudge also runs during an open session until tasks are updated. Keep Notifications
+                allowed in phone settings, and install PTA to Home Screen on iPhone.
               </p>
             </div>
 

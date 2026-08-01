@@ -170,7 +170,7 @@ export async function sendReminder(
   if (typeof window === 'undefined' || !notificationsSupported()) return;
   if (Notification.permission !== 'granted') return;
 
-  const options: NotificationOptions = {
+  const options: NotificationOptions & { showTrigger?: unknown } = {
     body,
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-192x192.png',
@@ -196,6 +196,37 @@ export async function sendReminder(
     };
   } catch {
     // ignore
+  }
+}
+
+/** Chromium Notification Triggers — schedule OS alarm even if tab is backgrounded (when supported). */
+async function scheduleOsTrigger(
+  title: string,
+  body: string,
+  fireAt: number,
+  action: ReminderAction,
+  sessionHint?: string
+): Promise<boolean> {
+  const Trigger = (window as unknown as { TimestampTrigger?: new (ts: number) => unknown }).TimestampTrigger;
+  if (!Trigger || !('serviceWorker' in navigator)) return false;
+  try {
+    const reg = (await navigator.serviceWorker.getRegistration('/')) || (await navigator.serviceWorker.ready);
+    if (!reg?.showNotification) return false;
+    await reg.showNotification(title, {
+      body,
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-192x192.png',
+      tag: `pta-trigger-${action}-${sessionHint || title}-${fireAt}`,
+      showTrigger: new Trigger(fireAt),
+      data: {
+        action,
+        sessionHint,
+        link: `/?action=${encodeURIComponent(action)}${sessionHint ? `&session=${encodeURIComponent(sessionHint)}` : ''}`,
+      },
+    } as NotificationOptions);
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -315,6 +346,8 @@ export function scheduleReminders(
   slots.forEach(({ label, time, action, sessionHint }) => {
     if (!time) return;
     const delay = msUntil(time);
+    const fireAt = Date.now() + delay;
+    void scheduleOsTrigger('PTA Reminder', `${label} — tap to open.`, fireAt, action, sessionHint);
     const handle = setTimeout(() => {
       void sendReminder('PTA Reminder', `${label} — tap to open.`, action, sessionHint);
       onFire?.({ label, action, sessionHint });
@@ -325,6 +358,8 @@ export function scheduleReminders(
 
   if (settings.weeklyReminder) {
     const delay = msUntilWeekly(settings.weeklyReminder);
+    const fireAt = Date.now() + delay;
+    void scheduleOsTrigger('PTA Weekly Review', 'Review your week and generate your weekly report.', fireAt, 'weekly');
     const handle = setTimeout(() => {
       void sendReminder('PTA Weekly Review', 'Review your week and generate your weekly report.', 'weekly');
       onFire?.({ label: 'Weekly review', action: 'weekly' });

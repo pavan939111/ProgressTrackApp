@@ -39,7 +39,7 @@ export async function sendPushToUser(
   uid: string,
   payload: { title: string; body: string; link?: string; data?: Record<string, string> }
 ) {
-  const tokens = fcmTokenStore.list(uid).map((t) => t.token);
+  const tokens = (await fcmTokenStore.list(uid)).map((t) => t.token);
   if (!tokens.length) {
     return { success: false, message: 'No device tokens registered', sent: 0 };
   }
@@ -62,11 +62,13 @@ export async function sendPushToUser(
     webpush: payload.link ? { fcmOptions: { link: payload.link } } : undefined,
   });
 
-  result.responses.forEach((r, i) => {
-    if (!r.success && r.error?.code?.includes('registration-token-not-registered')) {
-      fcmTokenStore.remove(uid, tokens[i]);
-    }
-  });
+  await Promise.all(
+    result.responses.map(async (r, i) => {
+      if (!r.success && r.error?.code?.includes('registration-token-not-registered')) {
+        await fcmTokenStore.remove(uid, tokens[i]);
+      }
+    })
+  );
 
   return {
     success: result.successCount > 0,

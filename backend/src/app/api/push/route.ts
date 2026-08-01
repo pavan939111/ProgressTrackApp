@@ -29,13 +29,13 @@ export async function POST(req: NextRequest) {
 
     if (action === 'register') {
       if (!token) return apiError('token required', 'PUSH_002', 400);
-      fcmTokenStore.register(uid, token);
+      await fcmTokenStore.register(uid, token);
       return apiSuccess({ registered: true }, 'Device token registered');
     }
 
     if (action === 'unregister') {
       if (!token) return apiError('token required', 'PUSH_002', 400);
-      fcmTokenStore.remove(uid, token);
+      await fcmTokenStore.remove(uid, token);
       return apiSuccess({ unregistered: true });
     }
 

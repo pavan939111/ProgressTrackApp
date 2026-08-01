@@ -1,5 +1,5 @@
 /* PTA Progressive Web App service worker — offline shell + optional FCM */
-const CACHE_NAME = 'pta-cache-v4';
+const CACHE_NAME = 'pta-cache-v5';
 const OFFLINE_URL = '/offline.html';
 const PRECACHE = [
   '/',
@@ -110,11 +110,20 @@ try {
     messaging.onBackgroundMessage((payload) => {
       const title = (payload.notification && payload.notification.title) || 'PTA Reminder';
       const body = (payload.notification && payload.notification.body) || '';
+      const data = payload.data || {};
+      const link =
+        data.link ||
+        (data.action
+          ? `/?action=${encodeURIComponent(data.action)}${
+              data.sessionHint ? `&session=${encodeURIComponent(data.sessionHint)}` : ''
+            }`
+          : '/');
       self.registration.showNotification(title, {
         body,
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-192x192.png',
-        data: payload.data || {},
+        tag: `pta-fcm-${data.action || 'alarm'}-${data.sessionHint || title}`,
+        data: { ...data, link },
       });
     });
   }

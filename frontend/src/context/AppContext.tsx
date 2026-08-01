@@ -292,9 +292,14 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     },
     triggerConfetti,
     saveSettings: (updates) => {
-      const next = ptaStore.saveSettings({ ...settings, ...updates, uid });
+      const timezone =
+        typeof Intl !== 'undefined'
+          ? Intl.DateTimeFormat().resolvedOptions().timeZone || settings.timezone || 'UTC'
+          : settings.timezone || 'UTC';
+      const next = ptaStore.saveSettings({ ...settings, ...updates, uid, timezone });
       setSettings(next);
       scheduleReminders(next, undefined, { lastActiveDate: user.lastActiveDate });
+      void ptaStore.flushPendingSync();
     },
     updateProfile: (updates) => {
       const next = ptaStore.saveProfile({ ...user, ...updates, updatedAt: new Date().toISOString() });
@@ -406,9 +411,14 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       const next = ptaStore.saveSettings({
         ...settings,
         notificationsEnabled: true,
+        timezone:
+          typeof Intl !== 'undefined'
+            ? Intl.DateTimeFormat().resolvedOptions().timeZone || settings.timezone || 'UTC'
+            : settings.timezone || 'UTC',
         updatedAt: new Date().toISOString(),
       });
       setSettings(next);
+      void ptaStore.flushPendingSync();
       const profile = ptaStore.saveProfile({
         ...user,
         notificationPermission: true,
