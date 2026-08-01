@@ -2,6 +2,6 @@
 
 - Never commit `.env`, `.env.local`, `env`, or files named like `env (1)`.
 - Copy `.env.example` → `.env.local` and fill values locally / in Vercel.
-- Machine-specific MCP paths: copy `.agents/mcp_config.example.json` → `.agents/mcp_config.json` (gitignored).
+- Keep `firestore.rules` and `firestore.indexes.json` local only (gitignored). Deploy them with Firebase CLI from your machine.
+- Never commit service account JSON, `.firebaserc`, or Cloudinary/Firebase secrets.
 - If credentials were ever pushed, **rotate them** in Firebase + Cloudinary consoles (git history may still contain old values).
-- Deploy Firestore rules from `firestore.rules` (auth-required owner access only).

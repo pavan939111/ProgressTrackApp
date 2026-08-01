@@ -131,7 +131,7 @@ async function seed() {
       dailyPlanId: `dp-${today}`,
       sessionId: `sess-${today}-1`,
       session: 'Morning',
-      title: 'Connect Live Firebase & Firestore Database (pta-1-8f439)',
+      title: 'Connect Live Firebase & Firestore Database',
       description: 'Verify 13 flat collections and SDK initialization',
       priority: 'High',
       status: 'Completed',
@@ -229,7 +229,7 @@ async function seed() {
   });
   console.log('✓ Collection [xpHistory] seeded');
 
-  console.log('\n🎉 Successfully populated all live Firestore collections in pta-1-8f439!');
+  console.log('\nSuccessfully populated all Firestore collections.');
 }
 
 seed().catch(console.error);

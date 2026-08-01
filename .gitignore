@@ -70,3 +70,11 @@ constellation-*.zip
 .vscode/
 *.swp
 *.swo
+
+# Firebase / Firestore (keep local only — do not publish rules or indexes)
+firestore.rules
+firestore.indexes.json
+firebase.json
+.firebaserc
+**/serviceAccount*.json
+**/firebase-adminsdk*.json

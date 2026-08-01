@@ -343,7 +343,7 @@ export const dbService = {
           sessionId: morningSess.sessionId,
           session: 'Morning',
           weeklyGoalId: 'wg-1',
-          title: 'Connect Live Firebase & Firestore Database (pta-1-8f439)',
+          title: 'Connect Live Firebase & Firestore Database',
           description: 'Verify 13 flat collections and SDK initialization',
           priority: 'High',
           estimatedMinutes: 45,
