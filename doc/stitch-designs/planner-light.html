@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PTA - Plan Tomorrow</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        canvas: '#F4F4F4',
+                        surface: '#FFFFFF',
+                        'surface-subtle': '#EEEEEE',
+                        primary: '#0E7490',
+                        'primary-container': '#CFFAFE',
+                        secondary: '#059669',
+                        tertiary: '#D97706',
+                        'text-primary': '#0F172A',
+                        'text-secondary': '#475569',
+                        border: '#E2E8F0',
+                        danger: '#DC2626'
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk", "sans-serif"],
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Plus Jakarta Sans", "sans-serif"],
+                        "label": ["Plus Jakarta Sans", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom scrollbar for textareas */
+        textarea::-webkit-scrollbar { width: 4px; }
+        textarea::-webkit-scrollbar-track { background: transparent; }
+        textarea::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 4px; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-canvas text-text-primary font-body antialiased min-h-screen pb-28">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky border-b border-[#E2E8F0] dark:border-slate-800 bg-[#F4F4F4] dark:bg-slate-900 z-40">
+<div class="flex justify-between items-center px-4 py-3 w-full">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full overflow-hidden border border-border shrink-0 hover:opacity-80 transition-opacity cursor-pointer">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A close-up portrait of a professional individual in a minimalist, well-lit studio setting. The lighting is soft and bright, casting gentle shadows. The person exudes focus and ambition, fitting for a productivity app user. Soft white and subtle cyan tones are present in the background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqlN8UiqHMHxhWdkgevuDwCktuddqLzI-21sytyH0npExiv75FwQDlaVg3vEJ_4CD7XoX1Vl1XqdRd-N_hSAvnqvtwqqaE1BWRy5E7ydFas6IfVUhYlPGwKbo71NH0gcxLNG7QwZJd74OeiGL__izX8YNrPrQEQkePYj2-cly5nPWWo2r2vUIveMaT5RE662xXYCy3_3f_wGDRMrun_Rmd-h7I88QUSdNXOhwwM2HUq8P91kfELYkkDxoGF5tlPQXzBYK8odZEioY"/>
+</div>
+<h1 class="font-headline text-2xl font-bold text-[#0E7490] dark:text-cyan-400">PTA</h1>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-subtle rounded-full hover:opacity-80 transition-opacity cursor-pointer active:scale-95 duration-200">
+<span class="material-symbols-outlined text-tertiary text-sm" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="font-mono text-sm font-bold text-text-primary tracking-tight">1,250 XP</span>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="px-4 pt-6 pb-12 max-w-lg mx-auto w-full space-y-6">
+<!-- Header -->
+<div class="space-y-1">
+<h2 class="font-headline text-3xl font-bold tracking-tight text-text-primary">Plan Tomorrow</h2>
+<p class="text-text-secondary text-sm font-medium">Set your intentions for maximum focus.</p>
+</div>
+<!-- Core Goal -->
+<section class="bg-surface rounded-xl p-5 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-border">
+<label class="flex items-center gap-2 mb-3" for="core-goal">
+<span class="material-symbols-outlined text-primary text-xl">target</span>
+<span class="font-headline font-bold text-lg text-text-primary">Core Goal</span>
+</label>
+<textarea class="w-full bg-transparent border-none outline-none resize-none font-headline text-xl font-medium text-text-primary placeholder:text-text-secondary/50 p-0 focus:ring-0" id="core-goal" placeholder="What is the one thing you must accomplish tomorrow?" rows="2"></textarea>
+</section>
+<!-- Notes -->
+<section class="bg-surface-subtle rounded-xl p-4 border border-border/50">
+<label class="flex items-center gap-2 mb-2" for="brain-dump">
+<span class="material-symbols-outlined text-text-secondary text-lg">notes</span>
+<span class="font-headline font-bold text-base text-text-secondary">Context &amp; Notes</span>
+</label>
+<textarea class="w-full bg-transparent border-none outline-none resize-none font-body text-sm text-text-primary placeholder:text-text-secondary/60 p-0 focus:ring-0" id="brain-dump" placeholder="Jot down quick thoughts, blockers, or context for tomorrow's work..." rows="3"></textarea>
+</section>
+<!-- Daily Timeline -->
+<section class="space-y-4 pt-2">
+<h3 class="font-headline font-bold text-xl text-text-primary">Timeline Blocks</h3>
+<!-- Morning Block -->
+<div class="bg-surface rounded-xl p-4 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] border border-border">
+<div class="flex items-center justify-between mb-4 border-b border-surface-subtle pb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">wb_twilight</span>
+<h4 class="font-headline font-bold text-text-primary">Morning</h4>
+</div>
+<span class="text-xs font-mono text-text-secondary bg-surface-subtle px-2 py-1 rounded-md">08:00 - 12:00</span>
+</div>
+<div class="space-y-3">
+<label class="flex items-start gap-3 group cursor-pointer">
+<input class="mt-0.5 w-5 h-5 rounded border-border text-primary focus:ring-primary focus:ring-offset-0 bg-canvas cursor-pointer" type="checkbox"/>
+<span class="text-sm font-medium text-text-primary group-hover:text-primary transition-colors line-clamp-2">Review pull requests for authentication module</span>
+</label>
+<label class="flex items-start gap-3 group cursor-pointer">
+<input class="mt-0.5 w-5 h-5 rounded border-border text-primary focus:ring-primary focus:ring-offset-0 bg-canvas cursor-pointer" type="checkbox"/>
+<span class="text-sm font-medium text-text-primary group-hover:text-primary transition-colors line-clamp-2">Standup prep &amp; team sync</span>
+</label>
+</div>
+<button class="mt-4 flex items-center gap-1.5 text-primary text-sm font-bold hover:opacity-80 transition-opacity active:scale-95 origin-left">
+<span class="material-symbols-outlined text-lg">add</span>
+                    Add Task
+                </button>
+</div>
+<!-- Midday Block -->
+<div class="bg-surface rounded-xl p-4 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] border border-border">
+<div class="flex items-center justify-between mb-4 border-b border-surface-subtle pb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">light_mode</span>
+<h4 class="font-headline font-bold text-text-primary">Midday</h4>
+</div>
+<span class="text-xs font-mono text-text-secondary bg-surface-subtle px-2 py-1 rounded-md">13:00 - 17:00</span>
+</div>
+<div class="space-y-3">
+<label class="flex items-start gap-3 group cursor-pointer">
+<input class="mt-0.5 w-5 h-5 rounded border-border text-primary focus:ring-primary focus:ring-offset-0 bg-canvas cursor-pointer" type="checkbox"/>
+<span class="text-sm font-medium text-text-primary group-hover:text-primary transition-colors line-clamp-2">Deep work: Refactor state management</span>
+</label>
+</div>
+<button class="mt-4 flex items-center gap-1.5 text-primary text-sm font-bold hover:opacity-80 transition-opacity active:scale-95 origin-left">
+<span class="material-symbols-outlined text-lg">add</span>
+                    Add Task
+                </button>
+</div>
+<!-- Night Block -->
+<div class="bg-surface rounded-xl p-4 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] border border-border">
+<div class="flex items-center justify-between mb-4 border-b border-surface-subtle pb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-secondary">mode_night</span>
+<h4 class="font-headline font-bold text-text-primary">Night</h4>
+</div>
+<span class="text-xs font-mono text-text-secondary bg-surface-subtle px-2 py-1 rounded-md">18:00+</span>
+</div>
+<div class="space-y-3">
+<p class="text-sm text-text-secondary italic">No tasks scheduled yet.</p>
+</div>
+<button class="mt-4 flex items-center gap-1.5 text-primary text-sm font-bold hover:opacity-80 transition-opacity active:scale-95 origin-left">
+<span class="material-symbols-outlined text-lg">add</span>
+                    Add Task
+                </button>
+</div>
+</section>
+<!-- Primary Action -->
+<div class="pt-6">
+<button class="w-full bg-[#0E7490] text-white py-4 rounded-xl font-headline font-bold text-lg shadow-[0_4px_14px_0_rgba(14,116,144,0.39)] hover:bg-[#0c637a] hover:shadow-[0_6px_20px_rgba(14,116,144,0.23)] hover:opacity-80 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-xl">done_all</span>
+                Save Tomorrow Plan
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-xl border-t border-[#E2E8F0] dark:border-slate-800 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] bg-white dark:bg-slate-950">
+<div class="fixed bottom-0 left-0 w-full flex justify-around items-center px-2 py-3">
+<button class="flex flex-col items-center justify-center text-[#475569] dark:text-slate-400 px-3 py-1 hover:bg-[#EEEEEE] dark:hover:bg-slate-800 transition-all duration-250 ease-out active:scale-90 rounded-xl">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-body text-[10px] font-medium">Home</span>
+</button>
+<!-- Active State: Planner -->
+<button class="flex flex-col items-center justify-center bg-[#CFFAFE] dark:bg-cyan-900/30 text-[#0E7490] dark:text-cyan-300 rounded-xl px-3 py-1 transition-all duration-250 ease-out active:scale-90">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">event_note</span>
+<span class="font-body text-[10px] font-bold">Planner</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#475569] dark:text-slate-400 px-3 py-1 hover:bg-[#EEEEEE] dark:hover:bg-slate-800 transition-all duration-250 ease-out active:scale-90 rounded-xl">
+<span class="material-symbols-outlined mb-1">calendar_month</span>
+<span class="font-body text-[10px] font-medium">Calendar</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#475569] dark:text-slate-400 px-3 py-1 hover:bg-[#EEEEEE] dark:hover:bg-slate-800 transition-all duration-250 ease-out active:scale-90 rounded-xl">
+<span class="material-symbols-outlined mb-1">analytics</span>
+<span class="font-body text-[10px] font-medium">Reports</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#475569] dark:text-slate-400 px-3 py-1 hover:bg-[#EEEEEE] dark:hover:bg-slate-800 transition-all duration-250 ease-out active:scale-90 rounded-xl">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-body text-[10px] font-medium">Profile</span>
+</button>
+</div>
+</nav>
+<script>
+        // Simple auto-resize for textareas to enhance mobile UX
+        const textareas = document.querySelectorAll('textarea');
+        textareas.forEach(textarea => {
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        });
+    </script>
+</body></html>

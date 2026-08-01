@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PTA - Daily Report</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        canvas: '#F4F4F4',
+                        surface: '#FFFFFF',
+                        inset: '#EEEEEE',
+                        primary: {
+                            DEFAULT: '#0E7490',
+                            container: '#CFFAFE'
+                        },
+                        secondary: '#059669',
+                        tertiary: '#D97706',
+                        text: {
+                            primary: '#0F172A',
+                            secondary: '#475569'
+                        },
+                        border: '#E2E8F0',
+                        danger: '#DC2626'
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        headline: ["Space Grotesk", "sans-serif"],
+                        display: ["Space Grotesk", "sans-serif"],
+                        body: ["Plus Jakarta Sans", "sans-serif"],
+                        label: ["Plus Jakarta Sans", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"]
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #F4F4F4; /* canvas */
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Circular Progress Animation */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.8s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body text-text-primary antialiased bg-canvas selection:bg-primary-container selection:text-primary">
+<!-- Desktop Shell Layout Wrapper -->
+<div class="lg:flex min-h-screen">
+<!-- SideNav (Desktop Only) -->
+<nav class="hidden lg:flex flex-col h-screen w-64 fixed left-0 top-0 border-r border-[#E2E8F0] bg-surface flex flex-col py-8 z-40">
+<div class="px-6 mb-8">
+<div class="font-headline text-xl font-black text-[#0E7490] mb-8">PTA</div>
+<div class="flex items-center gap-3">
+<img alt="Engineer Profile" class="w-10 h-10 rounded-full object-cover border border-border" data-alt="A professional headshot of an engineer in a minimalist office setting with soft, high-key lighting. The style is modern, corporate, and clean." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAF6iXL8VQWNPnkWeXLgPIXGOFgi8deCt5tS-OoOFnTdy0ih4xOZic8Q1NlaQdl3OknzXSIitbaU6xPG6p8jQkFAPOLviwiu_fgsvs2X5ubP_VaQHD4_4zpcYlSmMrgIW5mksLo2R8NzD5pItgXcH8S38FDtJw1vXxtiiEztfpZxBLXV_J0CeqF0b7Qvwy1iQiObX4PA9mtcCMqLN4qDcyH1_6V2zbEinGpgbxPKXrv8CW9RSU-YcdVCPXRP7t2JxbmQugbagO5D3c"/>
+<div>
+<p class="font-body text-sm font-semibold text-text-primary leading-tight">Productivity Pro</p>
+<p class="font-body text-xs text-text-secondary leading-tight mt-0.5">Level 24 Engineer</p>
+</div>
+</div>
+<p class="font-mono text-xs text-tertiary mt-2 font-medium">Current Streak: 12 Days</p>
+</div>
+<div class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 text-[#475569] hover:bg-[#F4F4F4] px-6 py-4 rounded-lg font-body text-sm font-semibold transition-all cursor-pointer hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+                    Dashboard
+                </a>
+<a class="flex items-center gap-3 text-[#475569] hover:bg-[#F4F4F4] px-6 py-4 rounded-lg font-body text-sm font-semibold transition-all cursor-pointer hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">edit_calendar</span>
+                    Daily Planner
+                </a>
+<a class="flex items-center gap-3 text-[#475569] hover:bg-[#F4F4F4] px-6 py-4 rounded-lg font-body text-sm font-semibold transition-all cursor-pointer hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+                    Calendar
+                </a>
+<!-- Active State -->
+<a class="flex items-center gap-3 bg-[#CFFAFE] text-[#0E7490] border-r-4 border-[#0E7490] px-6 py-4 rounded-lg font-body text-sm font-semibold transition-all cursor-pointer" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">bar_chart</span>
+                    Performance Reports
+                </a>
+<a class="flex items-center gap-3 text-[#475569] hover:bg-[#F4F4F4] px-6 py-4 rounded-lg font-body text-sm font-semibold transition-all cursor-pointer hover:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+                    Settings
+                </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 lg:ml-64 relative pb-24 lg:pb-8">
+<!-- TopAppBar (Mobile/Tablet) -->
+<header class="flex justify-between items-center px-4 h-16 w-full max-w-[390px] mx-auto lg:max-w-7xl lg:px-8 bg-[#F4F4F4] top-0 sticky z-30 lg:hidden">
+<button class="w-10 h-10 flex items-center justify-center text-[#475569] hover:bg-[#EEEEEE] rounded-full active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-headline text-2xl font-black text-[#0E7490]">PTA</h1>
+<button class="w-10 h-10 rounded-full overflow-hidden border border-border active:scale-95 transition-transform duration-200">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="A professional headshot of an engineer in a minimalist office setting with soft, high-key lighting. The style is modern, corporate, and clean." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBa49TSbwBwrVS7zHeW0Uu4ajYn4hV3NiTfkE2HayyjIqwiv5PRs8LCCjO5XluQ_gghDmnbqSRzPDncHdRgHvR2I-x7NlECTwRThjPnbvek9-ZEqgQHbM2CHnWscASijx0Rw9T-kAJZ1EjgdVJiYP9Z0v-1JhDJ3JRucfW7nzf9pFRgH93-0KFQW8aVh4ZUEe1zIMRsHUywY0SuaOvy_Yp3gCp5suA84V3WBJY8DTnqwslGGhXOs0sj04IHPobK0q5LH2t5fZnl15s"/>
+</button>
+</header>
+<!-- Page Canvas -->
+<div class="max-w-[390px] mx-auto lg:max-w-3xl lg:mt-8 px-4 w-full">
+<!-- Page Header & Controls -->
+<div class="mb-6 lg:mb-8 pt-2">
+<div class="flex items-center justify-between mb-4">
+<h2 class="font-headline text-2xl lg:text-3xl font-bold text-text-primary tracking-tight">Daily Report</h2>
+<span class="font-mono text-sm text-text-secondary bg-surface px-3 py-1 rounded-full border border-border">Oct 24</span>
+</div>
+<!-- Segmented Control -->
+<div class="bg-border p-1 rounded-lg flex w-full lg:w-64">
+<button class="flex-1 py-1.5 px-4 bg-surface rounded-md shadow-sm font-label text-sm font-semibold text-text-primary">Daily</button>
+<button class="flex-1 py-1.5 px-4 rounded-md font-label text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">Weekly</button>
+</div>
+</div>
+<!-- Metrics Bento Grid -->
+<div class="grid grid-cols-2 gap-3 lg:gap-4 mb-8">
+<!-- Execution % (Hero Tile) -->
+<div class="col-span-2 sm:col-span-1 bg-surface rounded-xl p-5 shadow-soft border border-border/50 relative overflow-hidden flex flex-col items-center justify-center min-h-[160px]">
+<h3 class="font-label text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 w-full text-left self-start absolute top-4 left-4">Execution Rate</h3>
+<div class="relative w-24 h-24 mt-4">
+<!-- SVG Progress Ring -->
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-inset stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<circle class="progress-ring__circle text-primary stroke-current" cx="50" cy="50" fill="transparent" id="execution-ring" r="40" stroke-dasharray="251.2" stroke-dashoffset="30" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center flex-col">
+<span class="font-mono text-2xl font-bold text-text-primary">88<span class="text-sm">%</span></span>
+</div>
+</div>
+</div>
+<!-- Streak Tile -->
+<div class="col-span-1 bg-surface rounded-xl p-4 shadow-soft border border-border/50 flex flex-col justify-between relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-16 h-16 bg-tertiary/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-tertiary text-[20px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<h3 class="font-label text-xs font-semibold text-text-secondary uppercase tracking-wider">Streak</h3>
+</div>
+<div class="mt-auto">
+<div class="flex items-baseline gap-1">
+<span class="font-mono text-3xl font-bold text-text-primary">12</span>
+<span class="font-label text-sm text-text-secondary font-medium">days</span>
+</div>
+<p class="font-body text-[10px] text-tertiary mt-1 font-medium bg-tertiary/10 px-2 py-0.5 rounded inline-block">Personal Best!</p>
+</div>
+</div>
+<!-- Completed Tasks Tile -->
+<div class="col-span-1 bg-surface rounded-xl p-4 shadow-soft border border-border/50 flex flex-col justify-between">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">task_alt</span>
+<h3 class="font-label text-xs font-semibold text-text-secondary uppercase tracking-wider">Completed</h3>
+</div>
+<div class="mt-auto">
+<span class="font-mono text-3xl font-bold text-text-primary">07</span>
+<p class="font-body text-xs text-text-secondary mt-1">out of 8 tasks</p>
+</div>
+</div>
+<!-- Pending Tasks Tile (Simplified if on small screen alongside Streak) -->
+<div class="col-span-1 sm:col-span-1 bg-surface rounded-xl p-4 shadow-soft border border-border/50 flex flex-col justify-between">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-text-secondary text-[20px]">pending_actions</span>
+<h3 class="font-label text-xs font-semibold text-text-secondary uppercase tracking-wider">Pending</h3>
+</div>
+<div class="mt-auto">
+<span class="font-mono text-3xl font-bold text-text-primary">01</span>
+<p class="font-body text-xs text-text-secondary mt-1">Carried over</p>
+</div>
+</div>
+</div>
+<!-- Wins List Section -->
+<div class="mb-8">
+<h2 class="font-headline text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+                        Today's Wins
+                    </h2>
+<div class="bg-surface rounded-xl border border-border/50 shadow-soft overflow-hidden">
+<ul class="divide-y divide-inset">
+<li class="p-4 flex items-start gap-3 hover:bg-inset/50 transition-colors">
+<span class="material-symbols-outlined text-secondary mt-0.5 text-[20px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-body text-sm font-semibold text-text-primary">Deployed API V2 Auth Service</p>
+<p class="font-body text-xs text-text-secondary mt-1">Completed 2 hours ahead of schedule.</p>
+</div>
+</li>
+<li class="p-4 flex items-start gap-3 hover:bg-inset/50 transition-colors">
+<span class="material-symbols-outlined text-secondary mt-0.5 text-[20px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-body text-sm font-semibold text-text-primary">Code Review: Payment Gateway</p>
+<p class="font-body text-xs text-text-secondary mt-1">Approved PR #402 with minor feedback.</p>
+</div>
+</li>
+<li class="p-4 flex items-start gap-3 hover:bg-inset/50 transition-colors">
+<span class="material-symbols-outlined text-secondary mt-0.5 text-[20px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-body text-sm font-semibold text-text-primary">Daily Standup Presentation</p>
+<p class="font-body text-xs text-text-secondary mt-1">Successfully demoed sprint progress.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col gap-3 mt-8 mb-4">
+<button class="w-full bg-primary hover:bg-[#085d75] text-surface font-label text-sm font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-soft">
+<span class="material-symbols-outlined text-[18px]">summarize</span>
+                        Generate Detailed Report
+                    </button>
+<button class="w-full bg-transparent border-2 border-primary text-primary hover:bg-primary-container font-label text-sm font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                        Export to PDF
+                    </button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 right-0 flex justify-around items-center px-2 py-3 bg-white max-w-[390px] mx-auto lg:hidden rounded-t-xl z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] border-t border-[#E2E8F0]">
+<a class="flex flex-col items-center justify-center text-[#475569] px-3 py-1 hover:text-[#0E7490] active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-body text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#475569] px-3 py-1 hover:text-[#0E7490] active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined mb-1">event_note</span>
+<span class="font-body text-[10px] font-medium">Planner</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#475569] px-3 py-1 hover:text-[#0E7490] active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined mb-1">calendar_month</span>
+<span class="font-body text-[10px] font-medium">Calendar</span>
+</a>
+<!-- Active State -->
+<a class="flex flex-col items-center justify-center text-[#0E7490] bg-[#CFFAFE] rounded-xl px-3 py-1 active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-body text-[10px] font-medium">Reports</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#475569] px-3 py-1 hover:text-[#0E7490] active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-body text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+</div>
+<!-- Micro-interaction for Progress Ring -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const ring = document.getElementById('execution-ring');
+                if(ring) {
+                    // Circumference is 251.2, value is 88%. Offset = C - (C * % / 100)
+                    // 251.2 - (251.2 * 0.88) = 30.144
+                    ring.style.strokeDashoffset = '30.144';
+                }
+            }, 100);
+        });
+    </script>
+</body></html>

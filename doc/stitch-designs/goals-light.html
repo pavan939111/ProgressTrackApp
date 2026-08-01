@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PTA - Weekly Goals</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+              "canvas": "#F4F4F4",
+              "surface": "#FFFFFF",
+              "surface-inset": "#EEEEEE",
+              "primary": "#0E7490",
+              "primary-container": "#CFFAFE",
+              "secondary": "#059669",
+              "tertiary": "#D97706",
+              "text-primary": "#0F172A",
+              "text-secondary": "#475569",
+              "border-color": "#E2E8F0",
+              "danger": "#DC2626"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.5rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px",
+                    "twelve": "12px"
+            },
+            "spacing": {},
+            "fontFamily": {
+                    "headline": [
+                            "Space Grotesk",
+                            "sans-serif"
+                    ],
+                    "display": [
+                            "Space Grotesk",
+                            "sans-serif"
+                    ],
+                    "body": [
+                            "Plus Jakarta Sans",
+                            "sans-serif"
+                    ],
+                    "label": [
+                            "Plus Jakarta Sans",
+                            "sans-serif"
+                    ]
+            },
+            "fontSize": {
+              "headline-sm": "1.25rem",
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        /* Base styles */
+        body {
+            background-color: theme('colors.canvas');
+            color: theme('colors.text-primary');
+            font-family: theme('fontFamily.body');
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Material Symbols Outlined helper */
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;  /* Preferred icon size */
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+
+        /* Hide scrollbar for clean UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen bg-canvas pb-24 font-body">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-[#FFFFFF] dark:bg-slate-900 border-b border-[#E2E8F0] dark:border-slate-800">
+<div class="flex justify-between items-center px-4 h-16 w-full max-w-[1440px] mx-auto">
+<!-- Leading (Avatar) -->
+<button class="w-10 h-10 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A small, circular avatar portrait of a professional individual with a subtle smile. The portrait is high-quality, brightly lit, and set against a soft, neutral light-gray background to fit seamlessly into a clean, minimalist light-mode user interface. The aesthetic is polished, modern, and corporate." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeKaj7d4au3wUWmPdAS5BQjKzT8P-vk2p--5Ei8Q1g4vAVLtarb9XZhEDfyu0e-vM1qjRVl1UIb9V_Eorj0CKtX-MgIWJ_pa3CKySHs7QoxV2Hfz2jnvBv8rEMZXjxhDhSwFGoi8Oy6zUROttJ5_evEiktfaxjQbwJHzo2zDvps_EaYPhdUys9rtkAMiuU127_CrgzTydN8n3ZYm77VgG4thvo7FYbkwhKVX2ROcr0CwjE9iQ9ubmxydFaIankZMSqywPlM6Nz_D4"/>
+</button>
+<!-- Headline (Brand) -->
+<h1 class="font-headline text-xl font-bold tracking-tighter text-[#0E7490] dark:text-cyan-400">
+                PTA
+            </h1>
+<!-- Trailing (Icon) -->
+<button class="text-[#0E7490] dark:text-cyan-400 hover:bg-[#EEEEEE] dark:hover:bg-slate-800 transition-colors p-2 rounded-full active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="max-w-md mx-auto px-4 pt-6 space-y-8">
+<!-- Page Header -->
+<header class="space-y-1">
+<h2 class="font-headline text-2xl font-bold text-text-primary tracking-tight">Weekly Goals</h2>
+<p class="text-text-secondary text-sm">Focus your efforts for maximum impact.</p>
+</header>
+<!-- Goal Entry Form -->
+<section class="bg-surface rounded-twelve p-5 shadow-sm border border-border-color">
+<h3 class="font-headline font-semibold text-text-primary mb-4 text-sm uppercase tracking-wide">New Objective</h3>
+<form class="space-y-4">
+<div>
+<label class="sr-only" for="goal-title">Goal Title</label>
+<input class="w-full bg-surface-inset border-transparent rounded-lg px-4 py-3 text-text-primary placeholder:text-text-secondary/60 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-body text-sm" id="goal-title" placeholder="e.g., Complete 3 LeetCode problems daily" type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<select class="bg-surface-inset border-transparent rounded-lg px-3 py-2 text-text-secondary text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 flex-1">
+<option>Medium Priority</option>
+<option>High Priority</option>
+<option>Low Priority</option>
+</select>
+<button class="bg-primary text-white rounded-lg px-6 py-2 font-medium text-sm hover:bg-primary/90 active:scale-95 transition-all shadow-sm flex items-center gap-2" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        Add
+                    </button>
+</div>
+</form>
+</section>
+<!-- Goal List -->
+<section class="space-y-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="font-headline font-semibold text-text-primary text-sm uppercase tracking-wide">Active Goals</h3>
+<span class="text-text-secondary text-xs font-medium">Week 34</span>
+</div>
+<!-- Card 1 (High Priority) -->
+<article class="bg-surface rounded-twelve p-5 shadow-sm border border-border-color relative overflow-hidden group hover:border-primary/30 transition-colors">
+<!-- Priority Accent -->
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary"></div>
+<div class="pl-2">
+<div class="flex justify-between items-start mb-3">
+<div class="space-y-1 pr-8">
+<span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold text-tertiary bg-tertiary/10 uppercase tracking-wider">High</span>
+<h4 class="font-body font-medium text-text-primary leading-tight">Master System Design Concepts</h4>
+</div>
+<!-- Actions Container (Visible on hover/active, or always visible on mobile) -->
+<div class="flex items-center gap-1 text-text-secondary">
+<button class="p-1.5 rounded hover:bg-surface-inset hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+</button>
+</div>
+</div>
+<!-- Progress -->
+<div class="space-y-2 mt-4">
+<div class="flex justify-between text-xs font-medium text-text-secondary">
+<span>Progress</span>
+<span class="text-primary font-bold">60%</span>
+</div>
+<div class="h-2 w-full bg-surface-inset rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-500 ease-out" style="width: 60%"></div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 2 (Medium Priority) -->
+<article class="bg-surface rounded-twelve p-5 shadow-sm border border-border-color relative overflow-hidden group hover:border-primary/30 transition-colors">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary/40"></div>
+<div class="pl-2">
+<div class="flex justify-between items-start mb-3">
+<div class="space-y-1 pr-8">
+<span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold text-primary bg-primary-container uppercase tracking-wider">Medium</span>
+<h4 class="font-body font-medium text-text-primary leading-tight">Complete 3 LeetCode problems daily</h4>
+</div>
+<div class="flex items-center gap-1 text-text-secondary">
+<button class="p-1.5 rounded hover:bg-surface-inset hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+</button>
+</div>
+</div>
+<!-- Progress -->
+<div class="space-y-2 mt-4">
+<div class="flex justify-between text-xs font-medium text-text-secondary">
+<span>Progress</span>
+<span class="text-primary font-bold">25%</span>
+</div>
+<div class="h-2 w-full bg-surface-inset rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-500 ease-out" style="width: 25%"></div>
+</div>
+</div>
+</div>
+</article>
+<!-- Completed State Example -->
+<article class="bg-surface/50 rounded-twelve p-5 border border-border-color/50 relative overflow-hidden opacity-75">
+<div class="pl-2">
+<div class="flex justify-between items-start mb-3">
+<div class="space-y-1 pr-8">
+<h4 class="font-body font-medium text-text-secondary line-through leading-tight">Deploy v1.2 to Staging</h4>
+</div>
+<div class="flex items-center gap-1 text-text-secondary">
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle" data-weight="fill">check_circle</span>
+</div>
+</div>
+</div>
+</article>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-2 py-3 bg-[#FFFFFF] dark:bg-slate-900 border-t border-[#E2E8F0] dark:border-slate-800 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-xl z-50 md:hidden">
+<!-- Home (Inactive) -->
+<a class="flex flex-col items-center justify-center text-[#475569] dark:text-slate-400 px-3 py-1 hover:text-[#0E7490] dark:hover:text-cyan-400 transition-colors" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-label text-[10px] font-medium">Home</span>
+</a>
+<!-- Planner (Active) -->
+<a class="flex flex-col items-center justify-center text-[#0E7490] dark:text-cyan-400 bg-[#CFFAFE] dark:bg-cyan-900/30 rounded-xl px-3 py-1 hover:text-[#0E7490] dark:hover:text-cyan-400 active:scale-110 transition-transform duration-250 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="event_note" data-weight="fill">event_note</span>
+<span class="font-label text-[10px] font-medium">Planner</span>
+</a>
+<!-- Calendar (Inactive) -->
+<a class="flex flex-col items-center justify-center text-[#475569] dark:text-slate-400 px-3 py-1 hover:text-[#0E7490] dark:hover:text-cyan-400 transition-colors" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="calendar_month">calendar_month</span>
+<span class="font-label text-[10px] font-medium">Calendar</span>
+</a>
+<!-- Reports (Inactive) -->
+<a class="flex flex-col items-center justify-center text-[#475569] dark:text-slate-400 px-3 py-1 hover:text-[#0E7490] dark:hover:text-cyan-400 transition-colors" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="analytics">analytics</span>
+<span class="font-label text-[10px] font-medium">Reports</span>
+</a>
+<!-- Profile (Inactive) -->
+<a class="flex flex-col items-center justify-center text-[#475569] dark:text-slate-400 px-3 py-1 hover:text-[#0E7490] dark:hover:text-cyan-400 transition-colors" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-label text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+</body></html>

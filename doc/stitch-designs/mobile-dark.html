@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PTA Home Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        canvas: "#0B0F14",
+                        elevated: "#151A21",
+                        inset: "#1C2330",
+                        primary: {
+                            DEFAULT: "#22D3EE",
+                            soft: "#164E63"
+                        },
+                        secondary: "#34D399",
+                        tertiary: "#FBBF24",
+                        text: {
+                            primary: "#F1F5F9",
+                            secondary: "#94A3B8"
+                        },
+                        border: {
+                            DEFAULT: "rgba(36, 48, 68, 0.6)"
+                        },
+                        danger: "#F87171"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        lg: "1rem",
+                        xl: "1.5rem",
+                        full: "9999px"
+                    },
+                    fontFamily: {
+                        headline: ["Space Grotesk", "sans-serif"],
+                        display: ["Space Grotesk", "sans-serif"],
+                        body: ["Plus Jakarta Sans", "sans-serif"],
+                        label: ["Plus Jakarta Sans", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0B0F14;
+            color: #F1F5F9;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-canvas text-text-primary h-screen flex flex-col md:hidden pb-20">
+<!-- TopAppBar -->
+<header class="bg-[#0B0F14] sticky top-0 w-full border-b border-[#243044]/60 flex justify-between items-center px-4 h-16 z-40">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#22D3EE]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-headline font-bold text-xl text-[#F1F5F9]">PTA</span>
+</div>
+<div class="flex items-center gap-2 text-[#22D3EE] font-label font-bold text-sm">
+<span class="material-symbols-outlined text-tertiary text-sm" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="text-[#22D3EE]">420 XP</span>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto pb-6">
+<!-- Hero Section -->
+<section class="px-4 py-6 flex flex-col items-center">
+<div class="text-text-secondary font-label text-sm mb-1 uppercase tracking-wider">Today, Oct 24</div>
+<h1 class="font-headline font-bold text-2xl text-text-primary mb-8 text-center">Execution Phase</h1>
+<!-- Progress Ring -->
+<div class="relative w-48 h-48 mb-8 flex items-center justify-center">
+<svg class="w-full h-full" viewbox="0 0 120 120">
+<circle class="text-inset stroke-current" cx="60" cy="60" fill="transparent" r="54" stroke-width="8"></circle>
+<circle class="text-primary stroke-current progress-ring__circle" cx="60" cy="60" fill="transparent" r="54" stroke-dasharray="339.292" stroke-dashoffset="108.57344" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-headline font-bold text-4xl text-primary">68%</span>
+<span class="font-label text-text-secondary text-sm">Complete</span>
+</div>
+</div>
+<!-- CTA -->
+<button class="w-full max-w-sm bg-primary text-canvas font-bold font-label py-4 rounded-xl shadow-[0_0_15px_rgba(34,211,238,0.2)] active:scale-95 transition-transform duration-200">
+                Continue Morning Session
+            </button>
+</section>
+<!-- Session Track -->
+<section class="px-4 mb-8">
+<div class="bg-elevated rounded-xl p-4 border border-border">
+<div class="flex items-center justify-between relative">
+<div class="absolute top-1/2 left-4 right-4 h-[2px] bg-inset -z-10 -translate-y-1/2"></div>
+<div class="absolute top-1/2 left-4 w-1/2 h-[2px] bg-primary -z-10 -translate-y-1/2"></div>
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-canvas text-sm">check</span>
+</div>
+<span class="font-label text-[10px] text-text-secondary uppercase">Morning</span>
+</div>
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-8 h-8 rounded-full bg-elevated border-2 border-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-sm">light_mode</span>
+</div>
+<span class="font-label text-[10px] text-primary uppercase font-bold">Midday</span>
+</div>
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-8 h-8 rounded-full bg-inset border-2 border-border flex items-center justify-center">
+<span class="material-symbols-outlined text-text-secondary text-sm">nightlight</span>
+</div>
+<span class="font-label text-[10px] text-text-secondary uppercase">Night</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Current Focus List -->
+<section class="px-4">
+<div class="flex justify-between items-end mb-4">
+<h2 class="font-headline font-bold text-lg text-text-primary">Current Focus</h2>
+<span class="font-label text-text-secondary text-xs">3 Tasks</span>
+</div>
+<div class="space-y-3">
+<!-- Task 1 (P1) -->
+<div class="bg-elevated p-4 rounded-xl border border-border flex items-start gap-3 relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-danger"></div>
+<button class="w-6 h-6 rounded-full border-2 border-text-secondary mt-0.5 flex-shrink-0 flex items-center justify-center hover:border-primary transition-colors"></button>
+<div class="flex-1">
+<h3 class="font-body font-medium text-text-primary text-sm mb-1">Review architecture PR</h3>
+<div class="flex items-center gap-2 font-label text-[10px]">
+<span class="bg-danger/20 text-danger px-2 py-0.5 rounded text-[10px] font-bold">P1</span>
+<span class="text-text-secondary flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">schedule</span> 45m</span>
+<span class="text-text-secondary flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">folder_special</span> High Priority</span>
+</div>
+</div>
+</div>
+<!-- Task 2 (P2) -->
+<div class="bg-elevated p-4 rounded-xl border border-border flex items-start gap-3 relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary"></div>
+<button class="w-6 h-6 rounded-full border-2 border-text-secondary mt-0.5 flex-shrink-0 flex items-center justify-center hover:border-primary transition-colors"></button>
+<div class="flex-1">
+<h3 class="font-body font-medium text-text-primary text-sm mb-1">Draft deployment docs</h3>
+<div class="flex items-center gap-2 font-label text-[10px]">
+<span class="bg-tertiary/20 text-tertiary px-2 py-0.5 rounded text-[10px] font-bold">P2</span>
+<span class="text-text-secondary flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">schedule</span> 1h 30m</span>
+<span class="text-text-secondary flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">work</span> Focus Work</span>
+</div>
+</div>
+</div>
+<!-- Task 3 (Completed) -->
+<div class="bg-inset p-4 rounded-xl border border-border/50 flex items-start gap-3 opacity-60">
+<div class="w-6 h-6 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center mt-0.5">
+<span class="material-symbols-outlined text-canvas text-sm">check</span>
+</div>
+<div class="flex-1">
+<h3 class="font-body font-medium text-text-secondary line-through text-sm mb-1">Morning Standup</h3>
+<div class="flex items-center gap-2 font-label text-[10px]">
+<span class="text-secondary flex items-center gap-1 font-bold"><span class="material-symbols-outlined text-[12px]">star</span> +50 XP</span>
+<span class="text-text-secondary flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">schedule</span> 15m</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-[#151A21] font-label text-xs fixed bottom-0 w-full rounded-t-xl border-t border-[#243044]/60 shadow-2xl z-50 flex justify-around items-center px-2 py-3">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center text-[#22D3EE] font-bold bg-[#164E63]/30 rounded-xl px-3 py-1 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">home</span>
+<span>Home</span>
+</a>
+<!-- Planner -->
+<a class="flex flex-col items-center justify-center text-[#94A3B8] px-3 py-1 hover:bg-[#1C2330] rounded-xl active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1">event_note</span>
+<span>Planner</span>
+</a>
+<!-- Calendar -->
+<a class="flex flex-col items-center justify-center text-[#94A3B8] px-3 py-1 hover:bg-[#1C2330] rounded-xl active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1">calendar_month</span>
+<span>Calendar</span>
+</a>
+<!-- Reports -->
+<a class="flex flex-col items-center justify-center text-[#94A3B8] px-3 py-1 hover:bg-[#1C2330] rounded-xl active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1">bar_chart</span>
+<span>Reports</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-[#94A3B8] px-3 py-1 hover:bg-[#1C2330] rounded-xl active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span>Profile</span>
+</a>
+</nav>
+</body></html>

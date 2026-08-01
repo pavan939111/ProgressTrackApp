@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PTA Home Dashboard - Dark Theme</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        canvas: "#0B0F14",
+                        surface: {
+                            DEFAULT: "#151A21",
+                            inset: "#1C2330"
+                        },
+                        primary: {
+                            DEFAULT: "#22D3EE",
+                            soft: "#164E63"
+                        },
+                        secondary: "#34D399",
+                        tertiary: "#FBBF24",
+                        text: {
+                            primary: "#F1F5F9",
+                            secondary: "#94A3B8"
+                        },
+                        border: {
+                            DEFAULT: "rgba(36, 48, 68, 0.6)"
+                        },
+                        danger: "#F87171"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        headline: ["Space Grotesk", "sans-serif"],
+                        display: ["Space Grotesk", "sans-serif"],
+                        body: ["Plus Jakarta Sans", "sans-serif"],
+                        label: ["Plus Jakarta Sans", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #0B0F14; color: #F1F5F9; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .progress-ring { stroke-dasharray: 439.8; stroke-dashoffset: 140.7; /* 68% of 2*pi*70 */ transition: stroke-dashoffset 1s ease-in-out; }
+    </style>
+</head>
+<body class="font-body antialiased min-h-screen flex overflow-hidden">
+<!-- SideNavBar (from JSON) -->
+<nav class="fixed left-0 top-0 h-screen w-64 bg-[#0B0F14] border-r border-[#243044]/60 flex flex-col p-4 space-y-2 z-50">
+<div class="mb-8 px-4 flex items-center space-x-3">
+<!-- Brand Header -->
+<div>
+<h1 class="font-headline text-2xl font-bold text-[#22D3EE] tracking-tight">PTA Tracker</h1>
+<p class="text-text-secondary text-sm">Engineer Pro</p>
+</div>
+</div>
+<div class="flex-1 space-y-1">
+<!-- Tab: Dashboard (ACTIVE) -->
+<a class="flex items-center space-x-3 px-4 py-3 bg-[#164E63] text-[#22D3EE] font-bold rounded-lg cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Tab: Weekly Goals (INACTIVE) -->
+<a class="flex items-center space-x-3 px-4 py-3 text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#1C2330] transition-colors duration-200 rounded-lg cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">target</span>
+<span>Weekly Goals</span>
+</a>
+<!-- Tab: Planner (INACTIVE) -->
+<a class="flex items-center space-x-3 px-4 py-3 text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#1C2330] transition-colors duration-200 rounded-lg cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">event_note</span>
+<span>Planner</span>
+</a>
+<!-- Tab: Calendar (INACTIVE) -->
+<a class="flex items-center space-x-3 px-4 py-3 text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#1C2330] transition-colors duration-200 rounded-lg cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span>Calendar</span>
+</a>
+<!-- Tab: Reports (INACTIVE) -->
+<a class="flex items-center space-x-3 px-4 py-3 text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#1C2330] transition-colors duration-200 rounded-lg cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Reports</span>
+</a>
+<!-- Tab: Achievements (INACTIVE) -->
+<a class="flex items-center space-x-3 px-4 py-3 text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#1C2330] transition-colors duration-200 rounded-lg cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">military_tech</span>
+<span>Achievements</span>
+</a>
+</div>
+<div class="mt-auto">
+<!-- Tab: Settings (INACTIVE) -->
+<a class="flex items-center space-x-3 px-4 py-3 text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#1C2330] transition-colors duration-200 rounded-lg cursor-pointer active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</div>
+</nav>
+<!-- Main Wrapper (accounts for SideNavBar width) -->
+<div class="ml-64 w-full flex flex-col h-screen relative">
+<!-- TopNavBar (from JSON) -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-[#0B0F14]/80 backdrop-blur-md border-b border-[#243044]/60 flex justify-between items-center px-8 z-40 font-body text-[#F1F5F9]">
+<!-- Search Bar (on_left) -->
+<div class="relative w-96 focus-within:ring-1 focus-within:ring-[#22D3EE] transition-all rounded-lg bg-surface-inset flex items-center px-3 py-2 border border-border">
+<span class="material-symbols-outlined text-text-secondary text-sm mr-2">search</span>
+<input class="bg-transparent border-none outline-none w-full text-sm text-text-primary placeholder:text-text-secondary focus:ring-0" placeholder="Search tasks, docs, commands (⌘K)" type="text"/>
+</div>
+<!-- Trailing Actions & Profile -->
+<div class="flex items-center space-x-6">
+<button class="text-[#94A3B8] hover:text-[#22D3EE] transition-colors">
+<span class="material-symbols-outlined text-xl">dark_mode</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-border">
+<img alt="Engineer Profile" class="w-full h-full object-cover" data-alt="A highly detailed close up portrait of a software engineer avatar, futuristic cyberpunk style, neon cyan and deep blue lighting, dark background, 8k resolution, photorealistic, professional and slick." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAV-M-UHuwCJko_fYWgl1KrRoEIR_XanpWGnSBOSVni91Ghmy4aagtaoXzYf7caRAD68d0YchxbjJ5mCs9VOvSYZD6MaopwGtA-ofOyNhyoifmZgVYt4vX5YCPfvjCWHA47IWTqWwNYvTjGptZJYkR0yG1_8t6hlilM3gLn5rGwmE9BSISnM8694_DC9DBenFJDhizOlqsVD9UGhS91Pmxyf-qVNveI_kKPXeac2Km_ga0GusccgSPDH0mpYqoXB4tQXr3cwWPI18s"/>
+</div>
+</div>
+</header>
+<!-- Scrollable Main Content Canvas -->
+<main class="flex-1 overflow-y-auto pt-24 px-8 pb-12 bg-canvas">
+<div class="max-w-6xl mx-auto space-y-8">
+<!-- Page Header & Global Progress -->
+<div class="flex items-end justify-between">
+<div>
+<p class="text-text-secondary text-sm font-semibold tracking-widest uppercase mb-2">Current Status</p>
+<h2 class="font-headline text-4xl font-bold text-text-primary tracking-tight">Execution Phase</h2>
+</div>
+<div class="flex items-center space-x-4 bg-surface px-4 py-2 rounded-lg border border-border">
+<span class="material-symbols-outlined text-tertiary">workspace_premium</span>
+<div class="flex flex-col">
+<span class="text-xs text-text-secondary">Current Streak</span>
+<span class="font-mono font-bold text-text-primary text-sm">14 Days</span>
+</div>
+</div>
+</div>
+<!-- Dashboard Bento Grid -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Left Column: Primary Focus & Session (Takes 8 cols) -->
+<div class="col-span-12 lg:col-span-8 flex flex-col space-y-6">
+<!-- Hero Progress Card -->
+<div class="bg-surface rounded-xl p-8 border border-border flex items-center justify-between shadow-sm relative overflow-hidden">
+<!-- Background accent -->
+<div class="absolute -right-20 -top-20 w-64 h-64 bg-primary-soft/20 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex-1 pr-8 z-10">
+<h3 class="font-headline text-2xl font-bold mb-2">Morning Session</h3>
+<p class="text-text-secondary mb-8">You're making excellent progress. Complete your current deep work block before midday review.</p>
+<button class="group flex items-center space-x-2 bg-primary text-canvas px-6 py-3 rounded-lg font-bold hover:bg-primary/90 transition-colors">
+<span>Continue Session</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+<!-- Progress Ring -->
+<div class="relative w-48 h-48 flex-shrink-0 z-10">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 160 160">
+<!-- Background circle -->
+<circle cx="80" cy="80" fill="none" r="70" stroke="rgba(36, 48, 68, 0.6)" stroke-width="12"></circle>
+<!-- Progress circle (68%) -->
+<circle class="progress-ring" cx="80" cy="80" fill="none" r="70" stroke="#22D3EE" stroke-linecap="round" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline text-4xl font-bold text-text-primary">68%</span>
+<span class="text-xs text-text-secondary tracking-widest font-semibold uppercase mt-1">Completed</span>
+</div>
+</div>
+</div>
+<!-- Session Track -->
+<div class="bg-surface rounded-xl p-6 border border-border">
+<div class="flex items-center justify-between mb-6">
+<h4 class="font-headline font-semibold text-lg">Daily Timeline</h4>
+<span class="text-xs font-mono text-text-secondary bg-surface-inset px-2 py-1 rounded">EST 10:42 AM</span>
+</div>
+<div class="flex items-center justify-between relative">
+<!-- Connecting Line (Background) -->
+<div class="absolute left-[10%] right-[10%] top-1/2 -translate-y-1/2 h-0.5 bg-border z-0"></div>
+<!-- Connecting Line (Progress) -->
+<div class="absolute left-[10%] right-[50%] top-1/2 -translate-y-1/2 h-0.5 bg-secondary z-0"></div>
+<!-- Step: Morning (Completed) -->
+<div class="flex flex-col items-center z-10 w-1/3">
+<div class="w-10 h-10 rounded-full bg-secondary text-canvas flex items-center justify-center mb-2 shadow-[0_0_15px_rgba(52,211,153,0.2)]">
+<span class="material-symbols-outlined text-xl">check</span>
+</div>
+<span class="text-sm font-semibold text-text-primary">Morning</span>
+<span class="text-xs text-text-secondary mt-1">8:00 - 11:30</span>
+</div>
+<!-- Step: Midday (Active) -->
+<div class="flex flex-col items-center z-10 w-1/3">
+<div class="w-10 h-10 rounded-full bg-surface border-2 border-primary text-primary flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">adjust</span>
+</div>
+<span class="text-sm font-semibold text-primary">Midday</span>
+<span class="text-xs text-text-secondary mt-1">12:00 - 16:00</span>
+</div>
+<!-- Step: Night (Pending) -->
+<div class="flex flex-col items-center z-10 w-1/3 opacity-50">
+<div class="w-10 h-10 rounded-full bg-surface-inset border border-border text-text-secondary flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-xl">nightlight</span>
+</div>
+<span class="text-sm font-semibold text-text-secondary">Night</span>
+<span class="text-xs text-text-secondary mt-1">17:00 - 20:00</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Current Focus / Task List (Takes 4 cols) -->
+<div class="col-span-12 lg:col-span-4 bg-surface rounded-xl border border-border flex flex-col overflow-hidden">
+<div class="p-6 border-b border-border flex items-center justify-between bg-surface-inset/50">
+<h4 class="font-headline font-semibold text-lg flex items-center">
+<span class="material-symbols-outlined text-primary mr-2">bolt</span>
+                                Current Focus
+                            </h4>
+<a class="text-xs font-semibold text-text-secondary hover:text-primary transition-colors uppercase tracking-wider" href="#">View All</a>
+</div>
+<div class="flex-1 p-2 space-y-1 overflow-y-auto">
+<!-- Task 1 (Active/Next) -->
+<div class="group p-4 rounded-lg bg-surface-inset border border-border hover:border-primary/50 transition-colors cursor-pointer relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="flex items-start justify-between">
+<div class="flex-1">
+<div class="flex items-center space-x-2 mb-1">
+<span class="text-[10px] font-mono bg-danger/20 text-danger px-1.5 py-0.5 rounded">P1</span>
+<span class="text-xs text-text-secondary font-mono flex items-center">
+<span class="material-symbols-outlined text-[14px] mr-1">timer</span> 45m
+                                            </span>
+</div>
+<p class="text-sm font-semibold text-text-primary group-hover:text-primary transition-colors">Review architecture PR</p>
+</div>
+<button class="w-6 h-6 rounded border border-border flex items-center justify-center hover:bg-surface text-transparent hover:text-text-secondary transition-all">
+<span class="material-symbols-outlined text-sm">check</span>
+</button>
+</div>
+</div>
+<!-- Task 2 (Pending) -->
+<div class="group p-4 rounded-lg hover:bg-surface-inset border border-transparent hover:border-border transition-colors cursor-pointer">
+<div class="flex items-start justify-between">
+<div class="flex-1">
+<div class="flex items-center space-x-2 mb-1">
+<span class="text-[10px] font-mono bg-tertiary/20 text-tertiary px-1.5 py-0.5 rounded">P2</span>
+<span class="text-xs text-text-secondary font-mono flex items-center">
+<span class="material-symbols-outlined text-[14px] mr-1">timer</span> 1h 30m
+                                            </span>
+</div>
+<p class="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">Draft deployment docs</p>
+</div>
+<button class="w-6 h-6 rounded border border-border flex items-center justify-center hover:bg-surface text-transparent hover:text-text-secondary transition-all">
+<span class="material-symbols-outlined text-sm">check</span>
+</button>
+</div>
+</div>
+<!-- Task 3 (Completed) -->
+<div class="p-4 rounded-lg opacity-50">
+<div class="flex items-start justify-between">
+<div class="flex-1">
+<div class="flex items-center space-x-2 mb-1">
+<span class="text-xs text-secondary font-mono flex items-center">
+<span class="material-symbols-outlined text-[14px] mr-1">done_all</span> Done
+                                            </span>
+</div>
+<p class="text-sm font-medium text-text-secondary line-through">Morning Standup</p>
+</div>
+<div class="w-6 h-6 rounded bg-secondary/20 border border-secondary flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
