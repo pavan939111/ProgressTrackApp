@@ -10,8 +10,11 @@ import {
   backendRegister,
   backendResetPassword,
   backendRefresh,
+  consumeAuthErrorQuery,
+  consumeGoogleAuthHash,
   getSession,
   saveSession,
+  startGoogleLogin,
   type AuthSession,
 } from '@/lib/authClient';
 
@@ -19,9 +22,12 @@ interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   isDemo: boolean;
+  authError: string | null;
+  clearAuthError: () => void;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, fullName: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  loginWithGoogle: () => void;
   enterDemo: () => void;
   logout: () => Promise<void>;
   refreshProfile: () => void;
@@ -61,6 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const refreshProfile = () => {
     if (!user) return;
@@ -68,10 +75,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (p) setUser(p);
   };
 
+  const clearAuthError = () => setAuthError(null);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
+        const oauthErr = consumeAuthErrorQuery();
+        if (oauthErr && !cancelled) setAuthError(oauthErr);
+
+        const google = consumeGoogleAuthHash();
+        if (google) {
+          const profile = applyUser(
+            defaultProfile({
+              uid: google.uid,
+              email: google.email,
+              fullName: google.fullName || google.email.split('@')[0] || 'Google User',
+            })
+          );
+          persistTokens({
+            user: profile,
+            idToken: google.idToken,
+            refreshToken: google.refreshToken,
+            expiresIn: google.expiresIn,
+          });
+          if (!cancelled) {
+            setIsDemo(false);
+            setUser(profile);
+            void ptaStore.hydrateFromBackend();
+          }
+          return;
+        }
+
         const session = getSession();
         if (!session) {
           if (!cancelled) setLoading(false);
@@ -147,6 +182,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!res.success) throw new Error(res.message || 'Reset failed');
   };
 
+  const loginWithGoogle = () => {
+    setAuthError(null);
+    startGoogleLogin('/');
+  };
+
   const enterDemo = () => {
     saveSession(null);
     const uid = 'demo-user-123';
@@ -168,9 +208,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         user,
         loading,
         isDemo,
+        authError,
+        clearAuthError,
         login,
         register,
         resetPassword,
+        loginWithGoogle,
         enterDemo,
         logout,
         refreshProfile,

@@ -10,8 +10,8 @@
 
 | Variable | Where |
 |----------|--------|
-| `NEXT_PUBLIC_API_URL` | Backend Vercel URL, e.g. `https://pta-backend.vercel.app` |
-| `NEXT_PUBLIC_APP_URL` | Frontend Vercel URL |
+| `NEXT_PUBLIC_API_URL` | Backend Vercel URL — `https://backend-six-roan-24.vercel.app` |
+| `NEXT_PUBLIC_APP_URL` | Frontend Vercel URL — `https://progress-track-app.vercel.app` |
 
 ---
 
@@ -44,8 +44,14 @@ You may keep `NEXT_PUBLIC_FIREBASE_*` **on the backend only** as aliases. Do **n
 ## Google Calendar OAuth (backend)
 
 1. Google Cloud Console → OAuth Web client
-2. Redirect: `https://YOUR-BACKEND.vercel.app/api/oauth/google/callback`
-3. `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
+2. Authorized redirect URIs (both required):
+   - `https://backend-six-roan-24.vercel.app/api/oauth/google/callback` (Calendar)
+   - `https://backend-six-roan-24.vercel.app/api/auth/google/callback` (Login)
+   - Local: `http://localhost:3001/api/oauth/google/callback` and `http://localhost:3001/api/auth/google/callback`
+3. Authorized JavaScript origins (optional): `https://progress-track-app.vercel.app`
+4. `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
+
+Also enable **Google** under Firebase Console → Authentication → Sign-in method (required for Continue with Google).
 
 ---
 

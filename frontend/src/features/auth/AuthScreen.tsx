@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Flame, Mail, Lock, User, ArrowRight } from 'lucide-react';
 
@@ -9,8 +9,32 @@ type Mode = 'login' | 'register' | 'reset';
 const fieldClass =
   'w-full bg-card border border-border rounded-xl px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all min-h-12';
 
+function GoogleIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="#EA4335"
+        d="M12.24 10.27v3.54h5.37c-.22 1.22-.9 2.25-1.91 2.94l3.09 2.4c1.8-1.66 2.84-4.1 2.84-7 0-.67-.06-1.32-.17-1.95H12.24z"
+      />
+      <path
+        fill="#34A853"
+        d="M5.48 14.3l-.84.64-2.53 1.97C3.7 19.7 7.66 22 12.24 22c2.7 0 4.96-.89 6.61-2.41l-3.09-2.4c-.9.6-2.05.96-3.52.96-2.71 0-5-1.83-5.82-4.3z"
+      />
+      <path
+        fill="#4A90E2"
+        d="M2.11 7.09C1.4 8.5 1 10.06 1 11.73c0 1.67.4 3.23 1.11 4.64l3.37-2.62c-.2-.6-.32-1.24-.32-1.92s.12-1.32.32-1.92z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M12.24 4.75c1.47 0 2.79.5 3.83 1.49l2.87-2.87C16.18 1.74 14.05.75 12.24.75 7.66.75 3.7 3.05 2.11 7.09l3.37 2.62c.82-2.47 3.11-4.3 5.76-4.3z"
+      />
+    </svg>
+  );
+}
+
 export function AuthScreen() {
-  const { login, register, resetPassword, enterDemo, loading } = useAuth();
+  const { login, register, resetPassword, enterDemo, loginWithGoogle, loading, authError, clearAuthError } =
+    useAuth();
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,9 +43,14 @@ export function AuthScreen() {
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  useEffect(() => {
+    if (authError) setError(authError);
+  }, [authError]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    clearAuthError();
     setInfo(null);
     setBusy(true);
     try {
@@ -72,6 +101,7 @@ export function AuthScreen() {
                 onClick={() => {
                   setMode(m);
                   setError(null);
+                  clearAuthError();
                   setInfo(null);
                 }}
                 className={`flex-1 px-2 py-2.5 min-h-11 rounded-lg text-xs font-bold capitalize transition-all ${
@@ -84,6 +114,25 @@ export function AuthScreen() {
               </button>
             ))}
           </div>
+
+          {mode !== 'reset' && (
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={loginWithGoogle}
+                disabled={busy}
+                className="w-full min-h-12 rounded-xl border border-border bg-background hover:bg-muted/60 text-sm font-bold text-foreground flex items-center justify-center gap-2.5 transition-colors disabled:opacity-60"
+              >
+                <GoogleIcon />
+                Continue with Google
+              </button>
+              <div className="flex items-center gap-3 text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                <div className="flex-1 h-px bg-border" />
+                or email
+                <div className="flex-1 h-px bg-border" />
+              </div>
+            </div>
+          )}
 
           <form onSubmit={submit} className="space-y-4">
             {mode === 'register' && (
@@ -148,7 +197,7 @@ export function AuthScreen() {
 
         <div className="space-y-3">
           <p className="text-[10px] text-muted-foreground text-center px-2">
-            Email auth is handled by the backend. Use Demo mode for offline tryout.
+            Google and email auth run on the backend. Demo mode works offline.
           </p>
           <button
             type="button"

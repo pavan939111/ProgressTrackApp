@@ -126,4 +126,47 @@ export async function fetchMessagingConfig() {
   }>;
 }
 
+/** Redirect browser to backend Google OAuth (Firebase session created on callback). */
+export function startGoogleLogin(returnPath = '/') {
+  if (typeof window === 'undefined') return;
+  const url = `${apiBase()}/api/auth/google/start?returnPath=${encodeURIComponent(returnPath)}`;
+  window.location.assign(url);
+}
+
+export type GoogleAuthHashPayload = {
+  idToken: string;
+  refreshToken: string;
+  expiresIn: string;
+  uid: string;
+  email: string;
+  fullName: string;
+};
+
+/** Read + clear `#google_auth=...` handoff from backend OAuth callback. */
+export function consumeGoogleAuthHash(): GoogleAuthHashPayload | null {
+  if (typeof window === 'undefined') return null;
+  const hash = window.location.hash || '';
+  if (!hash.startsWith('#google_auth=')) return null;
+  try {
+    const raw = decodeURIComponent(hash.slice('#google_auth='.length));
+    const data = JSON.parse(raw) as GoogleAuthHashPayload;
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    if (!data?.idToken || !data?.refreshToken || !data?.uid) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export function consumeAuthErrorQuery(): string | null {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const err = params.get('auth_error');
+  if (!err) return null;
+  params.delete('auth_error');
+  const qs = params.toString();
+  window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : ''));
+  return err;
+}
+
 export { apiBase };

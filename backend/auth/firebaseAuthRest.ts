@@ -112,3 +112,29 @@ export async function lookupAccount(idToken: string): Promise<{
   if (!user) throw new Error('Invalid session');
   return user;
 }
+
+/**
+ * Exchange a Google ID token (or access token) for Firebase Auth tokens.
+ * Requires Google provider enabled in Firebase Console → Authentication → Sign-in method.
+ */
+export async function signInWithGoogleIdp(params: {
+  idToken?: string;
+  accessToken?: string;
+  requestUri: string;
+}): Promise<AuthTokens> {
+  const key = apiKey();
+  if (!key) throw new Error('Firebase Auth is not configured on the server');
+  if (!params.idToken && !params.accessToken) {
+    throw new Error('Google id_token or access_token required');
+  }
+  const postBody = params.idToken
+    ? `id_token=${encodeURIComponent(params.idToken)}&providerId=google.com`
+    : `access_token=${encodeURIComponent(params.accessToken!)}&providerId=google.com`;
+
+  return postJson(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=${key}`, {
+    postBody,
+    requestUri: params.requestUri,
+    returnIdpCredential: true,
+    returnSecureToken: true,
+  });
+}
