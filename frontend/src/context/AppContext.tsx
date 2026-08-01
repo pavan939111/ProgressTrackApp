@@ -204,9 +204,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => undefined);
-    }
     const onOnline = () => {
       void ptaStore.flushPendingSync();
     };

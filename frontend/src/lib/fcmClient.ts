@@ -33,15 +33,10 @@ export async function initWebPush(uid: string): Promise<{ ok: boolean; token?: s
     if (perm !== 'granted') return { ok: false, message: 'Notification permission denied' };
   }
 
-  // Load SW config from backend (no secrets in frontend env)
-  const cfgUrl = `${apiBase()}/api/firebase-messaging-config`;
-  const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-  // Inject config into SW scope via importScripts-compatible endpoint fetch in SW file
-  try {
-    await fetch(cfgUrl);
-  } catch {
-    /* SW loads config itself if updated */
-  }
+  // Use the main PWA service worker (same scope) so installability + FCM share one controller
+  const reg =
+    (await navigator.serviceWorker.getRegistration('/')) ||
+    (await navigator.serviceWorker.register('/sw.js', { scope: '/' }));
   await navigator.serviceWorker.ready;
 
   messaging = getMessaging(ready.app);

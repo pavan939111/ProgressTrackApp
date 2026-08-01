@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { Settings, Bell, Sun, Moon, Monitor, Upload, Plus, Trash2, User } from 'lucide-react';
+import { Settings, Bell, Sun, Moon, Monitor, Upload, Plus, Trash2, User, Download } from 'lucide-react';
 import { CalendarIntegrationsPanel } from '@/features/integrations/CalendarIntegrationsPanel';
 import { applyDocumentTheme } from '@/components/ThemeSync';
 import { useAuth } from '@/context/AuthContext';
+import { usePwa } from '@/components/PwaRegister';
 
 function apiBase() {
   return (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
@@ -22,6 +23,8 @@ export function ProfilePage() {
     removeCustomSession,
   } = useApp();
   const { logout } = useAuth();
+  const { canInstall, isInstalled, isStandalone, swReady, install } = usePwa();
+  const [installMsg, setInstallMsg] = useState<string | null>(null);
   const [section, setSection] = useState<'profile' | 'appearance' | 'reminders' | 'sessions' | 'calendar'>(
     'profile'
   );
@@ -175,6 +178,38 @@ export function ProfilePage() {
               <Bell className="w-4 h-4" />
               {user.notificationPermission ? 'Notifications + FCM enabled' : 'Enable reminders + FCM push'}
             </button>
+
+            <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Progressive Web App</p>
+              <p className="text-sm text-foreground">
+                {isStandalone || isInstalled
+                  ? 'PTA is installed on this device.'
+                  : swReady
+                    ? 'Install PTA for a full-screen app experience and offline shell.'
+                    : 'Preparing install service…'}
+              </p>
+              {canInstall ? (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await install();
+                    setInstallMsg(ok ? 'Installed' : 'Install dismissed');
+                    if (ok) updateProfile({ pwaInstalled: true });
+                    window.setTimeout(() => setInstallMsg(null), 2000);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 min-h-11 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
+                >
+                  <Download className="w-4 h-4" />
+                  Install PTA app
+                </button>
+              ) : !isStandalone && !isInstalled ? (
+                <p className="text-xs text-muted-foreground">
+                  On iPhone: Share → Add to Home Screen. On desktop Chrome: menu → Install app.
+                </p>
+              ) : null}
+              {installMsg && <p className="text-xs text-secondary font-semibold">{installMsg}</p>}
+            </div>
+
             <button
               type="button"
               onClick={() => void logout()}

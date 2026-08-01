@@ -1,11 +1,16 @@
 {
-  "name": "Progress Tracker PWA",
+  "id": "/",
+  "name": "Progress Tracker App",
   "short_name": "PTA",
-  "description": "Daily execution & accountability system for high performers",
-  "start_url": "/",
+  "description": "Daily execution and accountability system for high performers",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#0B0F14",
   "theme_color": "#0E7490",
+  "lang": "en",
+  "categories": ["productivity", "lifestyle"],
   "icons": [
     {
       "src": "/icons/icon-192x192.png",

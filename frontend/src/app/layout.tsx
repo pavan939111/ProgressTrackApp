@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { AppProvider } from '@/context/AppContext';
 import { ThemeSync } from '@/components/ThemeSync';
+import { PwaRegister } from '@/components/PwaRegister';
 
 const display = Space_Grotesk({
   subsets: ['latin'],
@@ -20,6 +21,7 @@ const body = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: 'Progress Tracker App — High Focus Execution System',
   description: 'Daily accountability and 5-session execution platform for ambitious engineers',
+  applicationName: 'PTA',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -32,6 +34,9 @@ export const metadata: Metadata = {
     capable: true,
     title: 'PTA',
     statusBarStyle: 'default',
+  },
+  formatDetection: {
+    telephone: false,
   },
 };
 
@@ -61,12 +66,14 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-dvh antialiased">
-        <AuthProvider>
-          <AppProvider>
-            <ThemeSync />
-            {children}
-          </AppProvider>
-        </AuthProvider>
+        <PwaRegister>
+          <AuthProvider>
+            <AppProvider>
+              <ThemeSync />
+              {children}
+            </AppProvider>
+          </AuthProvider>
+        </PwaRegister>
       </body>
     </html>
   );
