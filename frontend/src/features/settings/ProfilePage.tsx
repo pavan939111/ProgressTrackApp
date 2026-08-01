@@ -249,33 +249,37 @@ export function ProfilePage() {
             </div>
 
             <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Progressive Web App</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Download as app</p>
               <p className="text-sm text-foreground">
                 {isStandalone || isInstalled
                   ? 'PTA is installed on this device.'
                   : swReady
-                    ? 'Install PTA for a full-screen app experience and offline shell.'
+                    ? 'Add PTA to your phone or computer like a normal app.'
                     : 'Preparing install service…'}
               </p>
-              {canInstall ? (
+              {!isStandalone && !isInstalled && (
                 <button
                   type="button"
                   onClick={async () => {
-                    const ok = await install();
-                    setInstallMsg(ok ? 'Installed' : 'Install dismissed');
-                    if (ok) updateProfile({ pwaInstalled: true });
-                    window.setTimeout(() => setInstallMsg(null), 2000);
+                    if (canInstall) {
+                      const ok = await install();
+                      setInstallMsg(ok ? 'Installed' : 'Install dismissed');
+                      if (ok) updateProfile({ pwaInstalled: true });
+                    } else {
+                      setInstallMsg(
+                        /iPhone|iPad|iPod/i.test(navigator.userAgent)
+                          ? 'iPhone: Share → Add to Home Screen'
+                          : 'Browser menu → Install app / Add to Home screen'
+                      );
+                    }
+                    window.setTimeout(() => setInstallMsg(null), 3500);
                   }}
                   className="flex items-center gap-2 px-4 py-2.5 min-h-11 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
                 >
                   <Download className="w-4 h-4" />
-                  Install PTA app
+                  Download as app
                 </button>
-              ) : !isStandalone && !isInstalled ? (
-                <p className="text-xs text-muted-foreground">
-                  On iPhone: Share → Add to Home Screen. On desktop Chrome: menu → Install app.
-                </p>
-              ) : null}
+              )}
               {installMsg && <p className="text-xs text-secondary font-semibold">{installMsg}</p>}
             </div>
 

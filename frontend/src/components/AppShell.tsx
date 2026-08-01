@@ -24,6 +24,7 @@ import {
 import { useApp } from '@/context/AppContext';
 import { applyDocumentTheme } from '@/components/ThemeSync';
 import { SyncStatusBar } from '@/components/SyncStatusBar';
+import { InstallAppBanner } from '@/components/InstallAppBanner';
 
 export type AppTab =
   | 'dashboard'
@@ -227,6 +228,7 @@ export function AppShell({ activeTab, setActiveTab, logout, isDemo, children }: 
               activeTab === 'planner' ? 'max-w-6xl' : 'max-w-3xl lg:max-w-2xl'
             }`}
           >
+            {activeTab === 'dashboard' && <InstallAppBanner />}
             {children}
           </div>
         </main>
