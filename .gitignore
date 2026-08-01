@@ -51,11 +51,15 @@ next-env.d.ts
 .mem0/
 **/.mem0/
 
-# local IDE / agent machine configs (contain absolute user paths)
-.agents/mcp_config.json
-**/.agents/mcp_config.json
-.cursor/mcp.json
-**/.cursor/mcp.json
+# all local/tooling dot-folders (not for GitHub)
+.agents/
+.cursor/
+.sentinel/
+.system-gate/
+**/.agents/
+**/.cursor/
+**/.sentinel/
+**/.system-gate/
 
 # archives / transfer packs (do not publish)
 *.zip
@@ -66,7 +70,3 @@ constellation-*.zip
 .vscode/
 *.swp
 *.swo
-
-# sentinel / gate local runtime (optional local state)
-.sentinel/accepted.json
-backend/.sentinel/
