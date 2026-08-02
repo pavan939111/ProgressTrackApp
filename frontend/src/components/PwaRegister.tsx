@@ -70,6 +70,26 @@ export function PwaRegister({ children }: { children?: React.ReactNode }) {
           await navigator.serviceWorker.ready;
         })
         .catch(() => undefined);
+
+      const onSwMessage = (event: MessageEvent) => {
+        if (event.data?.type === 'PTA_PLAY_ALARM') {
+          void import('@/lib/alarmSound').then((m) => m.playAlarmSound({ beeps: 5 }));
+        }
+      };
+      navigator.serviceWorker.addEventListener('message', onSwMessage);
+
+      let removeGesture: (() => void) | undefined;
+      void import('@/lib/alarmSound').then((m) => {
+        removeGesture = m.installAlarmGestureUnlock();
+      });
+
+      return () => {
+        mq.removeEventListener?.('change', onChange);
+        window.removeEventListener('beforeinstallprompt', onBip);
+        window.removeEventListener('appinstalled', onInstalled);
+        navigator.serviceWorker.removeEventListener('message', onSwMessage);
+        removeGesture?.();
+      };
     }
 
     return () => {

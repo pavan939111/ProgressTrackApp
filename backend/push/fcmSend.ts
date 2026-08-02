@@ -7,7 +7,22 @@ type AdminMessaging = {
     tokens: string[];
     notification?: { title: string; body: string };
     data?: Record<string, string>;
-    webpush?: { fcmOptions?: { link?: string } };
+    webpush?: {
+      fcmOptions?: { link?: string };
+      notification?: {
+        title?: string;
+        body?: string;
+        silent?: boolean;
+        requireInteraction?: boolean;
+        icon?: string;
+        vibrate?: number[];
+      };
+      headers?: Record<string, string>;
+    };
+    android?: {
+      priority?: 'high' | 'normal';
+      notification?: { sound?: string; channelId?: string; defaultSound?: boolean };
+    };
   }) => Promise<{
     successCount: number;
     failureCount: number;
@@ -58,8 +73,23 @@ export async function sendPushToUser(
   const result = await msg.sendEachForMulticast({
     tokens,
     notification: { title: payload.title, body: payload.body },
-    data: payload.data,
-    webpush: payload.link ? { fcmOptions: { link: payload.link } } : undefined,
+    data: { ...(payload.data || {}), sound: 'default' },
+    android: {
+      priority: 'high',
+      notification: { sound: 'default', channelId: 'pta_alarms', defaultSound: true },
+    },
+    webpush: {
+      fcmOptions: payload.link ? { link: payload.link } : undefined,
+      notification: {
+        title: payload.title,
+        body: payload.body,
+        silent: false,
+        requireInteraction: true,
+        icon: '/icons/icon-192x192.png',
+        vibrate: [250, 120, 250, 120, 450],
+      },
+      headers: { Urgency: 'high' },
+    },
   });
 
   await Promise.all(

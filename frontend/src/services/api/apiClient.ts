@@ -22,7 +22,7 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
     const json = await res.json();
     return json;
   } catch (error: any) {
-    console.warn(`API call to ${path} failed, falling back gracefully:`, error);
+    console.warn('API call failed, falling back gracefully', { path, error: error?.message || error });
     return { success: false, message: error.message };
   }
 }

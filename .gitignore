@@ -38,6 +38,10 @@ env.*
 env (*)
 *.local
 deploy/*.env
+*firebase-adminsdk*.json
+client_secret*.json
+*.apps.googleusercontent.com.json
+**/serviceAccount*.json
 !deploy/*.env.example
 
 # vercel
@@ -86,3 +90,6 @@ client_secret*.json
 **/client_secret*.json
 .data/
 **/.data/
+
+.secrets-local/
+

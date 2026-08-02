@@ -17,7 +17,7 @@ import {
 } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { defaultSettings, ptaStore } from '@/lib/ptaStore';
-import { requestNotificationPermission, scheduleReminders, getNextReminder, sendTestNotification, scheduleTestAlarm } from '@/lib/reminders';
+import { requestNotificationPermission, scheduleReminders, getNextReminder, sendTestNotification, scheduleTestAlarm, armAlarmAudio } from '@/lib/reminders';
 import { initWebPush, sendServerPush } from '@/lib/fcmClient';
 import { recordTodaySnapshot } from '@/lib/analytics';
 import { levelFromXp } from '@/lib/gamification';
@@ -392,6 +392,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         setSettings(nextOff);
         return { ok: false, message: perm.message };
       }
+
+      await armAlarmAudio();
 
       // Ensure SW is ready before mobile notifications (Android requires SW showNotification)
       if ('serviceWorker' in navigator) {

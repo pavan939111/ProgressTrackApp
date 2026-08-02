@@ -1,5 +1,5 @@
 /* PTA Progressive Web App service worker — offline shell + optional FCM */
-const CACHE_NAME = 'pta-cache-v5';
+const CACHE_NAME = 'pta-cache-v7';
 const OFFLINE_URL = '/offline.html';
 const PRECACHE = [
   '/',
@@ -8,6 +8,7 @@ const PRECACHE = [
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
   '/icons/apple-touch-icon.png',
+  '/sounds/alarm.wav',
 ];
 
 self.addEventListener('install', (event) => {
@@ -79,23 +80,42 @@ self.addEventListener('message', (event) => {
   }
   if (event.data.type === 'SHOW_NOTIFICATION') {
     const { title, options } = event.data;
-    event.waitUntil(self.registration.showNotification(title || 'PTA', options || {}));
+    const opts = {
+      silent: false,
+      requireInteraction: true,
+      vibrate: [250, 120, 250, 120, 450],
+      ...(options || {}),
+    };
+    event.waitUntil(
+      self.registration.showNotification(title || 'PTA', opts).then(() => notifyClientsPlayAlarm())
+    );
   }
 });
+
+function notifyClientsPlayAlarm() {
+  return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+    clientList.forEach((client) => {
+      client.postMessage({ type: 'PTA_PLAY_ALARM' });
+    });
+  });
+}
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const target = (event.notification.data && event.notification.data.link) || '/';
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if ('focus' in client) {
-          client.navigate?.(target);
-          return client.focus();
+    Promise.all([
+      notifyClientsPlayAlarm(),
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+        for (const client of clientList) {
+          if ('focus' in client) {
+            client.navigate?.(target);
+            return client.focus();
+          }
         }
-      }
-      if (self.clients.openWindow) return self.clients.openWindow(target);
-    })
+        if (self.clients.openWindow) return self.clients.openWindow(target);
+      }),
+    ])
   );
 });
 
@@ -118,13 +138,18 @@ try {
               data.sessionHint ? `&session=${encodeURIComponent(data.sessionHint)}` : ''
             }`
           : '/');
-      self.registration.showNotification(title, {
-        body,
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/icon-192x192.png',
-        tag: `pta-fcm-${data.action || 'alarm'}-${data.sessionHint || title}`,
-        data: { ...data, link },
-      });
+      self.registration
+        .showNotification(title, {
+          body,
+          icon: '/icons/icon-192x192.png',
+          badge: '/icons/icon-192x192.png',
+          tag: `pta-fcm-${data.action || 'alarm'}-${data.sessionHint || title}`,
+          silent: false,
+          requireInteraction: true,
+          vibrate: [250, 120, 250, 120, 450],
+          data: { ...data, link, sound: '/sounds/alarm.wav' },
+        })
+        .then(() => notifyClientsPlayAlarm());
     });
   }
 } catch (e) {

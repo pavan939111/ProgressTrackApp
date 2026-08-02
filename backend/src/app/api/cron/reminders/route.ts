@@ -1,10 +1,18 @@
 import { NextRequest } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { apiSuccess, apiError } from '../../../../../shared/errors/apiResponse';
 import { fcmAdminConfigured } from '../../../../../push/fcmSend';
 import { runReminderAlarms } from '../../../../../notifications/reminderScheduler';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
+
+function safeEqualString(a: string, b: string): boolean {
+  const ba = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ba.length !== bb.length) return false;
+  return timingSafeEqual(ba, bb);
+}
 
 function authorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
@@ -13,9 +21,10 @@ function authorized(req: NextRequest): boolean {
     return process.env.NODE_ENV !== 'production';
   }
   const auth = req.headers.get('authorization') || '';
-  if (auth === `Bearer ${secret}`) return true;
-  const q = req.nextUrl.searchParams.get('secret');
-  return q === secret;
+  const expected = `Bearer ${secret}`;
+  if (safeEqualString(auth, expected)) return true;
+  const q = req.nextUrl.searchParams.get('secret') || '';
+  return safeEqualString(q, secret);
 }
 
 /**

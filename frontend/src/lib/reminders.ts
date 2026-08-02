@@ -1,4 +1,5 @@
 import { UserSettings } from '@/types';
+import { armAlarmAudio, playAlarmSound } from '@/lib/alarmSound';
 
 type ReminderHandle = ReturnType<typeof setTimeout>;
 
@@ -6,6 +7,8 @@ const handles: ReminderHandle[] = [];
 let nagInterval: ReturnType<typeof setInterval> | null = null;
 
 const NAG_MS = 5 * 60 * 1000;
+
+export { armAlarmAudio, playAlarmSound };
 
 export type UpdateNagContext = {
   sessionName: string;
@@ -179,14 +182,21 @@ export async function sendReminder(
   if (typeof window === 'undefined' || !notificationsSupported()) return;
   if (Notification.permission !== 'granted') return;
 
-  const options: NotificationOptions & { showTrigger?: unknown } = {
+  // Audible alarm while a PTA window can play audio (await so test feels immediate)
+  await playAlarmSound({ beeps: 5 });
+
+  const options: NotificationOptions & { showTrigger?: unknown; vibrate?: number[] } = {
     body,
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-192x192.png',
     tag: `pta-${action || 'generic'}-${sessionHint || title}`,
+    silent: false,
+    requireInteraction: true,
+    vibrate: [250, 120, 250, 120, 450],
     data: {
       action,
       sessionHint,
+      sound: '/sounds/alarm.wav',
       link: action
         ? `/?action=${encodeURIComponent(action)}${sessionHint ? `&session=${encodeURIComponent(sessionHint)}` : ''}`
         : '/',
@@ -226,10 +236,14 @@ async function scheduleOsTrigger(
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-192x192.png',
       tag: `pta-trigger-${action}-${sessionHint || title}-${fireAt}`,
+      silent: false,
+      requireInteraction: true,
+      vibrate: [250, 120, 250, 120, 450],
       showTrigger: new Trigger(fireAt),
       data: {
         action,
         sessionHint,
+        sound: '/sounds/alarm.wav',
         link: `/?action=${encodeURIComponent(action)}${sessionHint ? `&session=${encodeURIComponent(sessionHint)}` : ''}`,
       },
     } as NotificationOptions);
@@ -242,13 +256,14 @@ async function scheduleOsTrigger(
 export async function sendTestNotification(): Promise<{ ok: boolean; message: string }> {
   const perm = await requestNotificationPermission();
   if (!perm.granted) return { ok: false, message: perm.message };
+  await armAlarmAudio();
   await sendReminder(
     'PTA Alarm Test',
-    'This is a test session alarm. Tap to open check-in.',
+    'This is a test session alarm with sound. Tap to open check-in.',
     'checkin',
     'Morning'
   );
-  return { ok: true, message: 'Test alarm sent now — check your notification shade.' };
+  return { ok: true, message: 'Test alarm sent with sound — check notification shade and volume.' };
 }
 
 /** Schedule a real alarm in ~delayMs (default 60s) so you can leave the app and wait. */
@@ -257,6 +272,7 @@ export async function scheduleTestAlarm(
 ): Promise<{ ok: boolean; message: string }> {
   const perm = await requestNotificationPermission();
   if (!perm.granted) return { ok: false, message: perm.message };
+  await armAlarmAudio();
 
   const fireAt = Date.now() + delayMs;
   const secs = Math.round(delayMs / 1000);
@@ -281,8 +297,8 @@ export async function scheduleTestAlarm(
   return {
     ok: true,
     message: triggered
-      ? `Alarm scheduled in ${secs}s (OS trigger). You can switch apps — wait for the notification.`
-      : `Alarm scheduled in ${secs}s. Keep PTA open or in recent apps; you’ll get a notification.`,
+      ? `Alarm + sound scheduled in ${secs}s (OS trigger). Keep volume up.`
+      : `Alarm + sound scheduled in ${secs}s. Keep PTA open or in recent apps; volume up.`,
   };
 }
 

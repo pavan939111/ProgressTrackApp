@@ -59,11 +59,8 @@ export default function RootLayout({
     <html lang="en" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('pta_theme');if(!t)t='light';if(t==='dark'){document.documentElement.classList.add('dark');}else if(t==='system'){if(window.matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){}})();`,
-          }}
-        />
+        {/* Static file — avoid dangerouslySetInnerHTML for theme FOUC bootstrap */}
+        <script src="/theme-init.js" />
       </head>
       <body className="min-h-dvh antialiased">
         <PwaRegister>

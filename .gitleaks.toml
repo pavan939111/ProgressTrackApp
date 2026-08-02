@@ -1,0 +1,25 @@
+# Gitleaks config for PTA
+title = "pta"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Local secrets files, build caches, deps, public Firebase web API key pattern"
+paths = [
+  '''(?i).*\.next/.*''',
+  '''(?i).*node_modules/.*''',
+  '''(?i).*scripts/\.venv/.*''',
+  '''(?i).*package-lock\.json$''',
+  '''(?i).*yarn\.lock$''',
+  '''(?i).*\.env(\..*)?$''',
+  '''(?i).*deploy/.*\.env$''',
+  '''(?i).*firebase-adminsdk.*\.json$''',
+  '''(?i).*client_secret.*\.json$''',
+  '''(?i).*\.apps\.googleusercontent\.com\.json$''',
+  '''(?i).*\.sentinel/.*''',
+]
+regexes = [
+  # Firebase web API keys are public by design (restricted by HTTP referrer / app)
+  '''AIzaSy[0-9A-Za-z\-_]{33}''',
+]
